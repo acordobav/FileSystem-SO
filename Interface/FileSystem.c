@@ -15,9 +15,8 @@ const float FPS = 30;
 const int SCREEN_W = 608;
 const int SCREEN_H = 588;
 
-char energyLine[10] = "";
+char text_terminal[70];
 
-ALLEGRO_BITMAP *martian_img;
 ALLEGRO_DISPLAY *display;
 ALLEGRO_FONT *font;
 #define BLACK (al_map_rgb(0, 0, 0))
@@ -34,10 +33,141 @@ typedef int code;
 code HandleEvent(ALLEGRO_EVENT ev);
 
 bool REDRAW_IS_READY;
-void RedrawSetReady(void);
-void RedrawClearReady(void);
-bool RedrawIsReady(void);
-void RedrawDo(); // to be defined in Implementation of EVENT HANDLER Module
+
+bool REDRAW_IS_READY = false;
+void RedrawSetReady(void) { REDRAW_IS_READY = true; }
+void RedrawClearReady(void) { REDRAW_IS_READY = false; }
+bool RedrawIsReady(void)
+{
+  switch (REDRAW_IS_READY)
+  {
+  case true:
+    RedrawClearReady();
+    return true;
+  default:
+    return false;
+  }
+}
+
+void callAction(){
+  printf("%s\n", text_terminal);
+  strcpy(text_terminal, "> ");
+}
+
+void keyBoardController(int keycode)
+{
+  // Letters
+  if (keycode == ALLEGRO_KEY_A)
+    strcat(text_terminal, "a");
+  else if (keycode == ALLEGRO_KEY_B)
+    strcat(text_terminal, "b");
+  else if (keycode == ALLEGRO_KEY_C)
+    strcat(text_terminal, "c");
+  else if (keycode == ALLEGRO_KEY_D)
+    strcat(text_terminal, "d");
+  else if (keycode == ALLEGRO_KEY_E)
+    strcat(text_terminal, "e");
+  else if (keycode == ALLEGRO_KEY_F)
+    strcat(text_terminal, "f");
+  else if (keycode == ALLEGRO_KEY_G)
+    strcat(text_terminal, "g");
+  else if (keycode == ALLEGRO_KEY_H)
+    strcat(text_terminal, "h");
+  else if (keycode == ALLEGRO_KEY_I)
+    strcat(text_terminal, "i");
+  else if (keycode == ALLEGRO_KEY_J)
+    strcat(text_terminal, "j");
+  else if (keycode == ALLEGRO_KEY_K)
+    strcat(text_terminal, "k");
+  else if (keycode == ALLEGRO_KEY_L)
+    strcat(text_terminal, "l");
+  else if (keycode == ALLEGRO_KEY_M)
+    strcat(text_terminal, "m");
+  else if (keycode == ALLEGRO_KEY_N)
+    strcat(text_terminal, "n");
+  else if (keycode == ALLEGRO_KEY_O)
+    strcat(text_terminal, "o");
+  else if (keycode == ALLEGRO_KEY_P)
+    strcat(text_terminal, "p");
+  else if (keycode == ALLEGRO_KEY_Q)
+    strcat(text_terminal, "q");
+  else if (keycode == ALLEGRO_KEY_R)
+    strcat(text_terminal, "r");
+  else if (keycode == ALLEGRO_KEY_S)
+    strcat(text_terminal, "s");
+  else if (keycode == ALLEGRO_KEY_T)
+    strcat(text_terminal, "t");
+  else if (keycode == ALLEGRO_KEY_U)
+    strcat(text_terminal, "u");
+  else if (keycode == ALLEGRO_KEY_V)
+    strcat(text_terminal, "v");
+  else if (keycode == ALLEGRO_KEY_W)
+    strcat(text_terminal, "w");
+  else if (keycode == ALLEGRO_KEY_X)
+    strcat(text_terminal, "x");
+  else if (keycode == ALLEGRO_KEY_Y)
+    strcat(text_terminal, "y");
+  else if (keycode == ALLEGRO_KEY_Z)
+    strcat(text_terminal, "z");
+
+  // Numbers
+  else if (keycode == ALLEGRO_KEY_0 || keycode == ALLEGRO_KEY_PAD_0)
+    strcat(text_terminal, "0");
+  else if (keycode == ALLEGRO_KEY_1 || keycode == ALLEGRO_KEY_PAD_1)
+    strcat(text_terminal, "1");
+  else if (keycode == ALLEGRO_KEY_2 || keycode == ALLEGRO_KEY_PAD_2)
+    strcat(text_terminal, "2");
+  else if (keycode == ALLEGRO_KEY_3 || keycode == ALLEGRO_KEY_PAD_3)
+    strcat(text_terminal, "3");
+  else if (keycode == ALLEGRO_KEY_4 || keycode == ALLEGRO_KEY_PAD_4)
+    strcat(text_terminal, "4");
+  else if (keycode == ALLEGRO_KEY_5 || keycode == ALLEGRO_KEY_PAD_5)
+    strcat(text_terminal, "5");
+  else if (keycode == ALLEGRO_KEY_6 || keycode == ALLEGRO_KEY_PAD_6)
+    strcat(text_terminal, "6");
+  else if (keycode == ALLEGRO_KEY_7 || keycode == ALLEGRO_KEY_PAD_7)
+    strcat(text_terminal, "7");
+  else if (keycode == ALLEGRO_KEY_8 || keycode == ALLEGRO_KEY_PAD_8)
+    strcat(text_terminal, "8");
+  else if (keycode == ALLEGRO_KEY_9 || keycode == ALLEGRO_KEY_PAD_9)
+    strcat(text_terminal, "9");
+
+  // Others
+  else if (keycode == ALLEGRO_KEY_SPACE)
+    strcat(text_terminal, " ");
+
+  else if (keycode == ALLEGRO_KEY_SLASH || keycode == ALLEGRO_KEY_PAD_SLASH)
+    strcat(text_terminal, "/");
+
+  else if (keycode == ALLEGRO_KEY_FULLSTOP || keycode == ALLEGRO_KEY_PAD_DELETE)
+    strcat(text_terminal, ".");
+
+  // DELETE
+  else if (keycode == ALLEGRO_KEY_BACKSPACE && strlen(text_terminal) > 2)
+    text_terminal[strlen(text_terminal) - 1] = '\0';
+  // ENTER
+  else if (keycode == ALLEGRO_KEY_ENTER || keycode == ALLEGRO_KEY_PAD_ENTER)
+    callAction();
+}
+
+code HandleEvent(ALLEGRO_EVENT ev)
+{
+  switch (ev.type)
+  {
+  case ALLEGRO_EVENT_TIMER:
+    RedrawSetReady();
+    break;
+  case ALLEGRO_EVENT_DISPLAY_CLOSE:
+    return EXIT_SUCCESS;
+  case ALLEGRO_EVENT_KEY_DOWN:
+    if (strlen(text_terminal) < 68)
+      keyBoardController(ev.keyboard.keycode);
+    break;
+  default:
+    break;
+  }
+  return CODE_CONTINUE;
+}
 
 int main(int argc, char *argv[])
 {
@@ -59,14 +189,13 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  ALLEGRO_TIMER *timer = al_create_timer(1.0 / FPS);            // Clock : Timer - Allegro display screen
-  display = al_create_display(SCREEN_W, SCREEN_H);              // Screen
-  martian_img = al_load_bitmap("../src/S2.png");           // Martian Image
-  ALLEGRO_BITMAP *TOP_img = al_load_bitmap("../src/TOP.png"); // Maze Image
+  ALLEGRO_TIMER *timer = al_create_timer(1.0 / FPS);                    // Clock : Timer - Allegro display screen
+  display = al_create_display(SCREEN_W, SCREEN_H);                      // Screen
+  ALLEGRO_BITMAP *TOP_img = al_load_bitmap("../src/TOP.png");           // Maze Image
   ALLEGRO_BITMAP *TERMINAL_img = al_load_bitmap("../src/TERMINAL.png"); // TERMINAL Image
 
+  strcpy(text_terminal, "> ");
 
-  al_set_target_bitmap(martian_img);
   al_set_target_bitmap(al_get_backbuffer(display));
   ALLEGRO_EVENT_QUEUE *event_queue = al_create_event_queue();
   al_register_event_source(event_queue, al_get_display_event_source(display));
@@ -80,22 +209,6 @@ int main(int argc, char *argv[])
 
   // Event loop
   int code = CODE_CONTINUE;
-  char snum[5];
-  char senergy[5];
-  char speriod[5];
-  char smode[10];
-  char smmove[10];
-
-  int s30 = 0;
-  int sGame = 0;
-  int martianID = -1;
-  int preview_martianID = -1;
-
-  char ch = '>';
-  int current_seconds = 0;
-  float u = 0;
-
-  ALLEGRO_THREAD *current_thread = NULL;
 
   while (code == CODE_CONTINUE)
   {
@@ -104,12 +217,7 @@ int main(int argc, char *argv[])
 
     if (RedrawIsReady() && al_is_event_queue_empty(event_queue))
     {
-
-      al_draw_text(font, al_map_rgb(70, 70, 70), 10, 590, 0, "Mode: ");
-      // sprintf(senergy, "%d", energy);
-      al_draw_text(font, al_map_rgb(255, 255, 220), 45, 552, 10, "> ");
-      /* al_draw_text(font, al_map_rgb(255, 255, 255), 70, 10, 0, senergy); */
-
+      al_draw_text(font, al_map_rgb(255, 255, 220), 30, 552, ALLEGRO_ALIGN_LEFT, text_terminal);
       al_flip_display();
     }
     ALLEGRO_EVENT ev;
@@ -120,52 +228,10 @@ int main(int argc, char *argv[])
   al_clear_to_color(al_map_rgb(0, 0, 0));
   al_flip_display();
 
-  al_destroy_bitmap(martian_img);
   al_destroy_bitmap(TOP_img);
   al_destroy_bitmap(TERMINAL_img);
   al_destroy_timer(timer);
   al_destroy_display(display);
   al_destroy_event_queue(event_queue);
   return code;
-}
-
-code HandleEvent(ALLEGRO_EVENT ev)
-{
-  switch (ev.type)
-  {
-  case ALLEGRO_EVENT_TIMER:
-    RedrawSetReady();
-    break;
-  case ALLEGRO_EVENT_DISPLAY_CLOSE:
-    return EXIT_SUCCESS;
-  case ALLEGRO_EVENT_KEY_DOWN:
-    if (ev.keyboard.keycode == ALLEGRO_KEY_X)
-    {
-      printf("FIN\n");
-      return EXIT_SUCCESS;
-    }
-    else if (ev.keyboard.keycode == ALLEGRO_KEY_ENTER)
-    {
-     printf("ENTER");
-    }
-    break;
-  default:
-    break;
-  }
-  return CODE_CONTINUE;
-}
-
-bool REDRAW_IS_READY = false;
-void RedrawSetReady(void) { REDRAW_IS_READY = true; }
-void RedrawClearReady(void) { REDRAW_IS_READY = false; }
-bool RedrawIsReady(void)
-{
-  switch (REDRAW_IS_READY)
-  {
-  case true:
-    RedrawClearReady();
-    return true;
-  default:
-    return false;
-  }
 }
