@@ -10,44 +10,35 @@
 #include <regex.h>
 #include <consts_regex.h>
 
-// ---------------------------------------------------------------------------
-// Header of MAIN module
-// ---------------------------------------------------------------------------
 const float FPS = 30;
 const int SCREEN_W = 608;
 const int SCREEN_H = 588;
 
+typedef int code;
 char text_terminal[70];
-regex_t regex;
+bool REDRAW_IS_READY = false;
 
-ALLEGRO_DISPLAY *display;
+regex_t regex;
 ALLEGRO_FONT *font;
-#define BLACK (al_map_rgb(0, 0, 0))
+ALLEGRO_DISPLAY *display;
+
+#define REG_EXTENDED 1
 #define XYZ_TOP 20, 20, 0
 #define XYZ_TERMINAL 20, 540, 0
+#define BLACK (al_map_rgb(0, 0, 0))
 
+#define CODE_SUCCESS EXIT_SUCCESS
+#define CODE_FAILURE EXIT_FAILURE
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #define CODE_CONTINUE (MIN(EXIT_SUCCESS, EXIT_FAILURE) - 1)
-#define CODE_SUCCESS EXIT_SUCCESS
-#define CODE_FAILURE EXIT_FAILURE
 
-#define REG_EXTENDED 1
-
-typedef int code;
-code HandleEvent(ALLEGRO_EVENT ev);
-
-bool REDRAW_IS_READY;
-
-bool REDRAW_IS_READY = false;
-void RedrawSetReady(void) { REDRAW_IS_READY = true; }
-void RedrawClearReady(void) { REDRAW_IS_READY = false; }
 bool RedrawIsReady(void)
 {
   switch (REDRAW_IS_READY)
   {
   case true:
-    RedrawClearReady();
+    REDRAW_IS_READY = false;
     return true;
   default:
     return false;
@@ -56,7 +47,6 @@ bool RedrawIsReady(void)
 
 void callAction()
 {
-
   // Folder
   int r_mkdir = regcomp(&regex, __r_mkdir, REG_EXTENDED);
   int r_rmdir = regcomp(&regex, __r_rmdir, REG_EXTENDED);
@@ -203,7 +193,7 @@ code HandleEvent(ALLEGRO_EVENT ev)
   switch (ev.type)
   {
   case ALLEGRO_EVENT_TIMER:
-    RedrawSetReady();
+    REDRAW_IS_READY = true;
     break;
   case ALLEGRO_EVENT_DISPLAY_CLOSE:
     return EXIT_SUCCESS;
@@ -239,7 +229,7 @@ int main(int argc, char *argv[])
 
   ALLEGRO_TIMER *timer = al_create_timer(1.0 / FPS);                    // Clock : Timer - Allegro display screen
   display = al_create_display(SCREEN_W, SCREEN_H);                      // Screen
-  ALLEGRO_BITMAP *TOP_img = al_load_bitmap("../src/TOP.png");           // Maze Image
+  ALLEGRO_BITMAP *TOP_img = al_load_bitmap("../src/TOP.png");           // Top Image
   ALLEGRO_BITMAP *TERMINAL_img = al_load_bitmap("../src/TERMINAL.png"); // TERMINAL Image
 
   strcpy(text_terminal, "> ");
@@ -273,7 +263,7 @@ int main(int argc, char *argv[])
     code = HandleEvent(ev);
   }
 
-  al_clear_to_color(al_map_rgb(0, 0, 0));
+  al_clear_to_color(BLACK);
   al_flip_display();
 
   al_destroy_bitmap(TOP_img);
