@@ -7,6 +7,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <time.h>
+#include <regex.h>
+#include <consts_regex.h>
 
 // ---------------------------------------------------------------------------
 // Header of MAIN module
@@ -16,6 +18,7 @@ const int SCREEN_W = 608;
 const int SCREEN_H = 588;
 
 char text_terminal[70];
+regex_t regex;
 
 ALLEGRO_DISPLAY *display;
 ALLEGRO_FONT *font;
@@ -28,6 +31,8 @@ ALLEGRO_FONT *font;
 #define CODE_CONTINUE (MIN(EXIT_SUCCESS, EXIT_FAILURE) - 1)
 #define CODE_SUCCESS EXIT_SUCCESS
 #define CODE_FAILURE EXIT_FAILURE
+
+#define REG_EXTENDED 1
 
 typedef int code;
 code HandleEvent(ALLEGRO_EVENT ev);
@@ -49,9 +54,43 @@ bool RedrawIsReady(void)
   }
 }
 
-void callAction(){
-  printf("%s\n", text_terminal);
-  strcpy(text_terminal, "> ");
+void callAction()
+{
+
+  // Folder
+  int r_mkdir = regcomp(&regex, __r_mkdir, REG_EXTENDED);
+  int r_rmdir = regcomp(&regex, __r_rmdir, REG_EXTENDED);
+  int r_mv_folder = regcomp(&regex, __r_mv_folder, REG_EXTENDED);
+  int r_mv_rename_folder = regcomp(&regex, __r_mv_rename_folder, REG_EXTENDED);
+
+  // File
+  // int r_rm_unlink = regcomp(&regex, __r_rm_unlink, REG_EXTENDED);
+  // int r_mv_file = regcomp(&regex, __r_mv_file, REG_EXTENDED);
+
+  if (!r_mv_rename_folder)
+  {
+    puts("Regular expression compiled successfully.");
+  }
+  else
+  {
+    puts("Compilation error.");
+  }
+
+  int reti = regexec(&regex, text_terminal, 0, NULL, 0);
+  if (!reti)
+  {
+    puts("Match");
+  }
+  else
+  {
+    puts("NO Match");
+  }
+
+  // strcpy(text_terminal, "> ");
+}
+
+int regexTerminal()
+{
 }
 
 void keyBoardController(int keycode)
