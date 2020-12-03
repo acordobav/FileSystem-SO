@@ -9,12 +9,16 @@
     renombrar : mv source_dirname dest_dirname
 
 ## Files
-    crear :
+    crear : touch filename.txt
     eliminar : unlink filename | rm filename
-    abrir :
+    abrir : cat filename.txt
     cerrar :
     leer :
     escribir :
     renombrar : mv source_file dest_file
     obtener atributos :
     establecer atributos :
+
+## Other - Display
+    listado default: ls | ls -a
+    listado por tiempo de modificacion : ls -t

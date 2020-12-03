@@ -64,10 +64,16 @@ void callAction()
   int r_mv_rename_folder = regcomp(&regex, __r_mv_rename_folder, REG_EXTENDED);
 
   // File
-  // int r_rm_unlink = regcomp(&regex, __r_rm_unlink, REG_EXTENDED);
-  // int r_mv_file = regcomp(&regex, __r_mv_file, REG_EXTENDED);
+  int r_rm_unlink = regcomp(&regex, __r_rm_unlink, REG_EXTENDED);
+  int r_mv_file = regcomp(&regex, __r_mv_file, REG_EXTENDED);
+  int r_touch = regcomp(&regex, __r_touch, REG_EXTENDED);
+  int r_cat = regcomp(&regex, __r_cat, REG_EXTENDED);
 
-  if (!r_mv_rename_folder)
+  // Other - Display
+  int r_ls = regcomp(&regex, __r_ls, REG_EXTENDED);
+  int r_ls_time = regcomp(&regex, __r_ls_time, REG_EXTENDED);
+
+  if (!r_ls_time)
   {
     puts("Regular expression compiled successfully.");
   }
@@ -180,6 +186,9 @@ void keyBoardController(int keycode)
 
   else if (keycode == ALLEGRO_KEY_FULLSTOP || keycode == ALLEGRO_KEY_PAD_DELETE)
     strcat(text_terminal, ".");
+
+  else if (keycode == ALLEGRO_KEY_MINUS || keycode == ALLEGRO_KEY_PAD_MINUS)
+    strcat(text_terminal, "-");
 
   // DELETE
   else if (keycode == ALLEGRO_KEY_BACKSPACE && strlen(text_terminal) > 2)

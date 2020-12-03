@@ -11,6 +11,11 @@ static const char *__r_mv_rename_folder = "mv([[:space:]]+)((([[:alnum:]]+)/([[:
 // File
 static const char *__r_rm_unlink = "(rm|unlink)([[:space:]]+)([[:alnum:]]*)$";
 static const char *__r_mv_file = "mv([[:space:]]+)([[:alnum:]]+).([[:alpha:]]+)([[:space:]]+)([[:alnum:]]+).([[:alpha:]]+)$";
+static const char *__r_touch = "touch([[:space:]]+)([[:alnum:]]+).([[:alpha:]]+)$";
+static const char *__r_cat = "cat([[:space:]]+)([[:alnum:]]+).([[:alpha:]]+)$";
 
+//Other - Display
+static const char *__r_ls = "(ls|ls -a)$";
+static const char *__r_ls_time = "ls -t$";
 
 #endif
