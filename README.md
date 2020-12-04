@@ -12,13 +12,14 @@
     crear : touch filename.txt
     eliminar : unlink filename | rm filename
     abrir : cat filename.txt
-    cerrar :
-    leer :
-    escribir :
+    cerrar : close
+    leer : less filename.txt
+    escribir : cat >> filename.txt
     renombrar : mv source_file dest_file
-    obtener atributos :
-    establecer atributos :
+    obtener atributos : get filename.txt
+    establecer atributos : set filename.txt -o owner -tm timeModification -dm dateModification -tc timeCreation -dc dateCreation -s currentSize
 
 ## Other - Display
     listado default: ls | ls -a
     listado por tiempo de modificacion : ls -t
+
