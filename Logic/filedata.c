@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "block.c"
+
 typedef struct FileData {
     char* name;         // Nombre del directorio o archivo
     int isDirectory;    // Identifica si es directorio o archivo
@@ -10,7 +12,7 @@ typedef struct FileData {
     char* created;      // Fecha de creacion
     char* lastModified; // Fecha de ultima modificacion
     char* size;         // Peso del archivo
-    int** blocks;       // Lista con los bloques en disco
+    Block* blocks;      // Lista con los bloques en disco
 } FileData;
 
 /**
@@ -19,8 +21,11 @@ typedef struct FileData {
  * isDirectory: 0 si es un archivo, 1 si es un directorio
  * owner: nombre del usuario que crea el archivo o directorio
  * size: peso del archivo o directorio
+ * numBlocks: numero de bloques totales
+ * blocks: bloques que ocupa el archivo
 */
-FileData* createFileData(char* name, int isDirectory, char* owner, char* size) {
+FileData* createFileData(char* name, int isDirectory, char* owner, char* size,
+                         int numBlocks, int blocks[numBlocks]) {
     // Creacion de la estructura
     FileData* fdata = malloc(sizeof(*fdata)); 
     fdata->name = name;
@@ -29,7 +34,7 @@ FileData* createFileData(char* name, int isDirectory, char* owner, char* size) {
     fdata->created = malloc(30*sizeof(char));
     fdata->lastModified = malloc(30*sizeof(char));
     fdata->size = size;
-    fdata->blocks = NULL;
+    fdata->blocks = createBlocks(numBlocks, blocks);
     
     // Obtener fecha actual
     time_t t = time(NULL);
@@ -45,10 +50,11 @@ FileData* createFileData(char* name, int isDirectory, char* owner, char* size) {
 
 /**
  * Funcion que se encarga de eliminar un FileData 
- * liberando la memoria alocada con malloc
+ * liberando la memoria solicitada con malloc
  * fdata: puntero a la estructura
 */
 void deleteFileData(FileData* fdata) {
+    deleteBlocks(fdata->blocks);
     free(fdata->created);
     free(fdata->lastModified);
     free(fdata);

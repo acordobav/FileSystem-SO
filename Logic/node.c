@@ -2,7 +2,7 @@
 #include "filedata.c"
 
 typedef struct Node {
-    FileData* filedata;     // Informacion del archivo o directorio 
+    FileData* filedata;    // Informacion del archivo o directorio 
     struct Node* kid;      // Puntero al primer hijo
     struct Node* brother;  // Puntero al siguiente hermano  
 } Node;
@@ -14,7 +14,7 @@ void backtrackigDelete(Node* root);
  * Funcion para crear la raiz del arbol
 */
 Node* createRoot() {
-    FileData* filedata = createFileData("root", 1, "system", NULL);
+    FileData* filedata = createFileData("root", 1, "system", NULL, 0, NULL);
     return createNode(filedata);
 }
 
