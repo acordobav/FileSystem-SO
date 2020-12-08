@@ -54,7 +54,7 @@ FileData* createFileData(char* name, int isDirectory, char* owner, char* size,
  * fdata: puntero a la estructura
 */
 void deleteFileData(FileData* fdata) {
-    if(fdata->blocks != NULL) deleteBlocks(fdata->blocks);
+    //if(fdata->blocks != NULL) deleteBlocks(fdata->blocks);
     free(fdata->created);
     free(fdata->lastModified);
     free(fdata);

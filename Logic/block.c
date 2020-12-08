@@ -39,38 +39,43 @@ Block* createBlocks(int number, int blocks[number]) {
  * blocks: lista con los numeros de bloque
  * block: Block al que seran agregados los elementos
 **/
-void appendBlocks(int number, int blocks[number], Block* block) {
+void appendBlocks(Block* block, Block* newBlock) {
     Block* current = block;
     // Busqueda del ultimo elemento
     while (current->next != NULL) 
         current = current->next;
     
-    // Creacion y link de los demas elementos
-    for (int i = 0; i < number; i++) {
-        Block* new = malloc(sizeof(*new)); 
-        new->number = blocks[i];
-        current->next = new;
-        current = new;
-    }
-    current->next = NULL;
+    // Append del nuevo bloque al final de la lista
+    current->next = newBlock;
 }
 
 /**
- * Funcion para eliminar una lista de bloques
- * block: primer elemento de la lista
+ * Funcion para obtener la cantidad de bloques totales de una lista
+ * first: primer elemento de la lista
 **/
-void deleteBlocks(Block* block) {
-    if(block->next != NULL) deleteBlocks(block->next);
+int countBlocks(Block* first) {
+    Block* current = first;
+    int counter = 0;
+    while(current != NULL) {
+        counter++;
+        current = current->next;
+    }
+    return counter;
+}
+
+/**
+ * Funcion para eliminar un bloque
+ * block: bloque que se debe eliminar
+**/
+void freeBlock(Block* block) {
     free(block);
 }
 
-/**
- * Funcion que elimina todos los elementos de una lista
- * de bloques, sin borrar el primer elemento
- * block: primer elemento de la lista
-**/
-void removeBlocks(Block* block) {
-    Block* next = block->next;
-    block->next = NULL;
-    deleteBlocks(next);
+void printBlocks(Block* first) {
+    Block* current = first;
+    while(current != NULL) {
+        printf("%d ", current->number);
+        current = current->next;
+    }
+    printf("\n");
 }

@@ -1,7 +1,24 @@
 #include <stdio.h>
+#include <math.h>
 
 #include "node.c"
 #include "diskhandler.c"
+
+int* usedBlocks;
+int blocksize;
+int blocks;
+int min_block;
+
+void startFileSystem() {
+    min_block = 0;
+    blocksize = 32;
+    blocks = 100;
+    createDisk(blocksize, blocks);
+
+    usedBlocks = malloc(blocks*sizeof(int));
+    memset(usedBlocks, 0, blocks*sizeof(int));
+}
+
 
 void updateTree() {
     
@@ -150,7 +167,7 @@ int renameElement(void* ref, char* oldName, char* newName) {
  * name: nombre del archivo
  * owner: nombre del dueno
 **/
-void touch(void* ref, char* name, char* owner) {
+void* touch(void* ref, char* name, char* owner) {
     Node* root = (Node*) ref;
 
     // Creacion del nuevo nodo
@@ -160,6 +177,40 @@ void touch(void* ref, char* name, char* owner) {
     // Insertar en el arbol
     insertNode(root, newNode);
     updateTree();
+
+    return newNode;
+}
+
+/**
+ * Funcion para eliminar una lista de bloques
+ * block: primer elemento de la lista
+**/
+void deleteBlocks(Block* block) {
+    if(block->next != NULL) deleteBlocks(block->next);
+    usedBlocks[block->number] = 0; // Se marca el bloque como disponible
+
+    // Se actualiza el minimo bloque disponible
+    if(min_block > block->number) 
+        min_block = block->number;
+    
+    freeBlock(block);
+}
+
+/**
+ * Funcion que elimina los bloques que se encuentren despues
+ * de los primeros neededBlocks de una lista de bloques
+ * block: primer elemento de la lista
+ * neededBlocks: numero de bloques que no se deben borrar
+**/
+void removeBlocks(Block* first, int neededBlocks) {
+    Block* block = first;
+    Block* previous = NULL;
+    for (int i = 0; i < neededBlocks; i++) {
+        previous = block;
+        block = block->next;
+    }
+    previous->next = NULL;
+    deleteBlocks(block);
 }
     
 /**
@@ -175,6 +226,7 @@ int rm(void* ref, char* name) {
     if(node != NULL) {
         if(!node->filedata->isDirectory){
             // Elemento es un archivo
+            deleteBlocks(node->filedata->blocks);
             deleteNode(ref, node);
             updateTree();
             return 0;
@@ -184,4 +236,140 @@ int rm(void* ref, char* name) {
     }
     // Elemento no encontrado
     return 2;
+}
+
+/**
+ * Funcion que encuentra una cantidad number de bloques disponibles
+ * number: cantidad de bloques solicitados
+ * return: puntero al primer elemento de la lista de bloques
+**/
+Block* getNewBlocks(int number) {
+    int newBlocks[number];
+    int counter = 0;
+
+    // Se recorre la lista en busca de bloques disponibles
+    for (int i = min_block; i < blocks; i++) {
+        if(!usedBlocks[i]) { //Bloque disponible
+            newBlocks[counter] = i;
+            counter++; 
+            usedBlocks[i] = 1;
+            min_block = i;
+            if(counter == number) break; // Condicion parada
+        }
+    }
+    // Si counter es diferente de number, significa que no
+    // hay suficiente espacio disponible en el disco
+    if(counter != number) return NULL;
+    
+    // Creacion de la lista de bloques
+    Block* new_blocks = createBlocks(number, newBlocks);
+    return new_blocks;
+}
+
+/**
+ * Funcion que le asigna los bloques necesarios a un nodo
+ * node: nodo al que asignarle los bloques
+ * blockNum: cantidad de bloques necesarios
+ * return: 0 -> asignacion exitosa
+ *         2 -> espacio insuficiente en disco
+**/
+int assignBlocks(Node* node, int blockNum) {
+    int assignedBlocks = countBlocks(node->filedata->blocks);
+    int newBlocks = blockNum - assignedBlocks;
+
+    if(newBlocks < 0) {
+        // Es necesario liberar bloques
+        int needed = assignedBlocks + newBlocks;
+        removeBlocks(node->filedata->blocks, needed);
+
+    } else if(newBlocks > 0) {
+        // Reserva de bloques
+        Block* block = getNewBlocks(newBlocks);
+        if(block == NULL) {
+            // No hay espacio suficiente
+            deleteBlocks(block);
+            return 2;
+        }
+        if(node->filedata->blocks != NULL)
+            // Ya exiten bloques asignados 
+            appendBlocks(node->filedata->blocks, block);
+        else
+            // No existen nodos asignados
+            node->filedata->blocks = block;
+    }
+    return 0;
+}
+
+
+/**
+ * Funcion para escribir en un archivo
+ * element: referencia del archivo en el que escribir
+ * data: informacion que debe escribirse
+ * return: 0 -> escritura exitosa
+ *         1 -> elemento es un directorio 
+ *         2 -> no hay espacio suficiente
+**/
+int writeFile(void* element, char* data) {
+    Node* node = (Node*) element;
+    if(!node->filedata->isDirectory) {
+        int length = strlen(data);
+
+        // Calculo cantidad de bloques necesarios
+        double blockNum = ceil((float) length / blocksize);
+        // Asignacion de bloques
+        if(assignBlocks(node, blockNum) == 2) return 2;
+        
+        // Copia de la informacion que debe ser escrita
+        char* info = (char*) malloc(blockNum*blocksize);
+        memset(info, 0, blockNum*blocksize);
+        strcpy(info, data);
+
+        // Escritura en disco
+        char* current = info;
+        char* buffer = (char*) malloc(blocksize);
+        Block* block = node->filedata->blocks;
+        for (int i = 0; i < blockNum; i++) {
+            memset(buffer, 0, blocksize); // Limpieza del buffer
+            memcpy(buffer, current, blocksize); // Copia de la info en el buffer
+
+            //Escritura en el bloque correspondiente
+            dwrite(buffer, block->number, blocksize);
+            
+            current += blocksize;
+            block = block->next;
+        }
+        free(buffer);
+        free(info);
+    }
+    // Se trata de un directorio
+    return 1;
+}
+
+/**
+ * Funcion para leer los datos en disco de un archivo
+ * element: elemento del cual obtener los datos almacenados
+ * return: string con la informacion almacenada
+ *         NULL -> archivo vacio
+**/
+char* readFile(void* element) {
+    Node* node = (Node*) element;
+
+    Block* block = node->filedata->blocks;
+    int blockNum = countBlocks(block);
+    if(blockNum == 0) return NULL; // Archivo vacio
+
+    char* read = malloc(blockNum*blocksize);
+    memset(read, 0, blockNum*blocksize);
+
+    // Lectura de disco
+    void* current = read;
+    for (int i = 0; i < blockNum; i++) {
+        char* data = dread(block->number, blocksize);
+        memcpy(current, data, blocksize);
+        current += blocksize;
+        block = block->next;
+        free(data);
+    }
+
+    return read;
 }
