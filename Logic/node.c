@@ -38,6 +38,7 @@ int deleteNode(Node* root, Node* node) {
     if (root->kid != node) {
         // Elemento a eliminar no es el hijo de la raiz
         Node* current = root->kid;
+        if(current == NULL) return 1;
 
         // Recorre lista de hermanos hasta encontrar
         // el elemento que se desea eliminar
