@@ -122,7 +122,7 @@ void* search(void* ref, char* route) {
 }
 
 /**
- * Funcion para cambiar el nombre de un elemento
+ * Funcion para cambiar el nombre de un elemento (archivo/directorio)
  * ref: nodo raiz del elemento al cual cambiar el nombre
  * oldName: nombre actual del archivo/directorio
  * newName: nuevo nombre
@@ -137,11 +137,51 @@ int renameElement(void* ref, char* oldName, char* newName) {
     if(node != NULL) {
         // Cambio de nombre
         node->filedata->name = newName;
+        updateTree();
         return 0;
     }
     // Elemento no encontrado
     return 1;
 }
 
+/**
+ * Funcion para crear un nuevo archivo
+ * ref: nodo raiz en el cual sera insertado el elemento
+ * name: nombre del archivo
+ * owner: nombre del dueno
+**/
+void touch(void* ref, char* name, char* owner) {
+    Node* root = (Node*) ref;
 
+    // Creacion del nuevo nodo
+    FileData* filedata = createFileData(name, 0, owner, "0", 0, NULL);
+    Node* newNode = createNode(filedata);
+
+    // Insertar en el arbol
+    insertNode(root, newNode);
+    updateTree();
+}
     
+/**
+ * Funcion para eliminar un archivo
+ * ref: nodo de referencia (raiz) del elemento
+ * name: nombre del archivo a eliminar
+ * return: 0 -> borrado exitoso
+ *         1 -> elemento es un directorio
+ *         2 -> archivo no encontrado
+**/
+int rm(void* ref, char* name) {
+    Node* node = searchElement(ref, name);
+    if(node != NULL) {
+        if(!node->filedata->isDirectory){
+            // Elemento es un archivo
+            deleteNode(ref, node);
+            updateTree();
+            return 0;
+        }
+        // Elemento es un directorio
+        return 1;
+    }
+    // Elemento no encontrado
+    return 2;
+}
