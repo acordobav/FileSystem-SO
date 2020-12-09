@@ -14,7 +14,7 @@ void backtrackigDelete(Node* root);
  * Funcion para crear la raiz del arbol
 */
 Node* createRoot() {
-    FileData* filedata = createFileData("root", 1, "system", NULL, 0, NULL);
+    FileData* filedata = createFileData("root", 1, "system", 0);
     return createNode(filedata);
 }
 
@@ -89,4 +89,18 @@ void insertNode(Node* root, Node* newNode) {
     }
     // Se coloca el nuevo elmento como hijo del root 
     root->kid = newNode;
+}
+
+/**
+ * Funcion para obtener la cantidad de bloques totales de una lista
+ * first: primer elemento de la lista
+**/
+int countNodeChilds(Node* root) {
+    Node* current = root->kid;
+    int counter = 0;
+    while(current != NULL) {
+        counter++;
+        current = current->brother;
+    }
+    return counter;
 }

@@ -11,7 +11,7 @@ typedef struct FileData {
     char* owner;        // Usuario creador
     char* created;      // Fecha de creacion
     char* lastModified; // Fecha de ultima modificacion
-    char* size;         // Peso del archivo
+    int size;         // Peso del archivo en bytes
     Block* blocks;      // Lista con los bloques en disco
 } FileData;
 
@@ -24,8 +24,7 @@ typedef struct FileData {
  * numBlocks: numero de bloques totales
  * blocks: bloques que ocupa el archivo
 */
-FileData* createFileData(char* name, int isDirectory, char* owner, char* size,
-                         int numBlocks, int blocks[numBlocks]) {
+FileData* createFileData(char* name, int isDirectory, char* owner, int size) {
     // Creacion de la estructura
     FileData* fdata = malloc(sizeof(*fdata)); 
     fdata->name = name;
@@ -34,7 +33,7 @@ FileData* createFileData(char* name, int isDirectory, char* owner, char* size,
     fdata->created = malloc(30*sizeof(char));
     fdata->lastModified = malloc(30*sizeof(char));
     fdata->size = size;
-    fdata->blocks = createBlocks(numBlocks, blocks);
+    fdata->blocks = NULL;
     
     // Obtener fecha actual
     time_t t = time(NULL);
