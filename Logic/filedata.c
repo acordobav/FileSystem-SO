@@ -2,6 +2,7 @@
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>
+#include <json-c/json.h>
 
 #include "block.c"
 
@@ -103,4 +104,45 @@ void changeName(FileData* filedata, char* newName) {
 **/
 void changeSize(FileData* filedata, int newSize) {
     filedata->size = newSize;
+}
+
+/**
+ * Funcion para convertir un filedata a un string en formato json
+ * filedata: FileData que debe ser convertido
+ * return: json string con la informacion del filedata ingresado
+**/
+json_object* filedata_to_json(FileData* filedata) {
+    // Creacion objeto json
+    json_object *j_object = json_object_new_object();
+
+    json_object_object_add(j_object, 
+                           "name", 
+                           json_object_new_string(filedata->name));
+    
+    json_object_object_add(j_object, 
+                           "isDirectory", 
+                           json_object_new_int(filedata->isDirectory));
+
+    json_object_object_add(j_object, 
+                           "owner", 
+                           json_object_new_string(filedata->owner));
+
+    json_object_object_add(j_object, 
+                           "created", 
+                           json_object_new_string(filedata->created));
+
+    json_object_object_add(j_object, 
+                           "lastModified", 
+                           json_object_new_string(filedata->lastModified));
+    
+    json_object_object_add(j_object, 
+                           "size", 
+                           json_object_new_int(filedata->size));
+    
+    json_object* j_array = block_to_json(filedata->blocks);
+    json_object_object_add(j_object, 
+                           "blocks", 
+                           j_array);
+
+    return j_object;
 }

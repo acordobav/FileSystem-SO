@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <json-c/json.h>
+
 #include "filedata.c"
 
 typedef struct Node {
@@ -103,4 +105,42 @@ int countNodeChilds(Node* root) {
         current = current->brother;
     }
     return counter;
+}
+
+/**
+ * Funcion para convertir un Node a un string en formato json
+ * node: Node que debe ser convertido
+ * return: json string con la informacion del node ingresado
+**/
+json_object* node_to_json(Node* node) {
+    // Creacion objeto json
+    json_object *j_object = json_object_new_object();
+
+    // Conversion del FileData
+    json_object *j_node_filedata = filedata_to_json(node->filedata);
+    json_object_object_add(j_object, "filedata", j_node_filedata);
+    
+    // Conversion del nodo hijo
+    json_object *j_node_kid = NULL;
+    if(node->kid != NULL) 
+        j_node_kid = node_to_json(node->kid);
+    json_object_object_add(j_object, "kid", j_node_kid);
+
+    // Conversion del nodo hermano
+    json_object *j_node_brother = NULL;
+    if(node->brother != NULL) 
+        j_node_brother = node_to_json(node->brother);
+    json_object_object_add(j_object, "brother", j_node_brother);
+    
+    return j_object;
+}
+
+/**
+ * Funcion para almacenar el arbol en un archivo .json
+ * root: raiz del arbol
+**/
+void tree_to_json(Node* root) {
+    json_object *j_object = node_to_json(root);
+    json_object_to_file("tree.json", j_object);
+    json_object_put(j_object);
 }

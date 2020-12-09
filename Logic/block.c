@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <json-c/json.h>
 
 typedef struct Block {
     int number;   // Block number
@@ -78,4 +79,26 @@ void printBlocks(Block* first) {
         current = current->next;
     }
     printf("\n");
+}
+
+/**
+ * Funcion para convertir la lista de bloques a un json array
+ * block: bloque inicial de la lista
+ * return: json array
+**/
+json_object* block_to_json(Block* block) {
+    // Creacion del json array
+    json_object *j_array = json_object_new_array();
+    
+    Block* current = block;
+    while (current != NULL)
+    {
+        // Agregar numero de bloque al array
+        json_object_array_add(j_array, json_object_new_int(current->number));
+
+        // Avanzar al siguiente bloque
+        current = current->next;
+    }
+
+    return j_array;
 }
