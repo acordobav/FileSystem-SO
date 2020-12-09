@@ -381,3 +381,23 @@ char* readFile(void* element) {
 
     return read;
 }
+
+/**
+ * Funcion para cambiar el propietario de un archivo/directorio
+ * ref: nodo que tiene el filedata que se tiene que cambiar
+ * newName: nuevo nombre
+**/
+void modifyOwner(void* ref, char* newName) {
+    Node* node = (Node*) ref;
+    changeOwner(node->filedata, newName);
+}
+
+/**
+ * Funcion para cambiar el tamano de un archivo/directorio
+ * ref: nodo que tiene el filedata que se tiene que cambiar
+ * newSize: nuevo tamano
+**/
+void modifySize(void* ref, int newSize) {
+    Node* node = (Node*) ref;
+    changeSize(node->filedata, newSize);
+}

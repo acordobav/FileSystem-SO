@@ -136,11 +136,72 @@ json_object* node_to_json(Node* node) {
 }
 
 /**
+ * Funcion para convertir un string en formato json a un nodo
+ * json_object: string en formato json con la informacion del nodo
+ * return: puntero al nodo con la informacion del string
+**/
+Node* json_to_node(json_object* json_node) {
+    // Conversion del filedata
+    json_object* json_filedata;
+    json_object_object_get_ex(json_node, "filedata", &json_filedata);
+    FileData* filedata = json_to_filedata(json_filedata);
+    //json_object_put(json_filedata);
+
+    // Creacion del nodo
+    Node* node = createNode(filedata);
+
+    // Conversion del nodo hijo
+    json_object* json_kid;
+    json_object_object_get_ex(json_node, "kid", &json_kid);
+    if(json_kid != NULL) node->kid = json_to_node(json_kid);
+    //json_object_put(json_kid);
+
+    // Conversion del nodo hermano
+    json_object* json_brother;
+    json_object_object_get_ex(json_node, "brother", &json_brother);
+    if(json_brother != NULL) node->kid = json_to_node(json_brother);
+    //json_object_put(json_brother);
+
+    return node;
+}
+
+/**
  * Funcion para almacenar el arbol en un archivo .json
  * root: raiz del arbol
 **/
 void tree_to_json(Node* root) {
-    json_object *j_object = node_to_json(root);
+    json_object *j_object = json_object_new_object();
+
+    // Creacion del json del arbol
+    json_object *j_root = node_to_json(root);
+    json_object_object_add(j_object, "root", j_root);
+
+    // Escritura en un archivo
     json_object_to_file("tree.json", j_object);
     json_object_put(j_object);
+}
+
+/**
+ * Funcion para almacenar el arbol en un archivo .json
+ * root: raiz del arbol
+**/
+Node* json_to_tree() {
+    // Apertura del archivo
+    FILE *f = fopen("tree.json", "r");
+    fseek(f, 0, SEEK_END);
+    long fsize = ftell(f);
+    fseek(f, 0, SEEK_SET); 
+
+    // Lectura del arbol
+    char *buffer = malloc(fsize + 1);
+    fread(buffer, 1, fsize, f);
+    fclose(f);
+
+    // Conversion del string a un nodo
+    json_object* parsed_json = json_tokener_parse(buffer);
+    json_object* json_root;
+    json_object_object_get_ex(parsed_json, "root", &json_root);
+    Node* node = json_to_node(json_root);
+    //json_object_put(parsed_json);
+    return node;
 }

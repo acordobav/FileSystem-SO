@@ -102,3 +102,27 @@ json_object* block_to_json(Block* block) {
 
     return j_array;
 }
+
+/**
+ * Funcion para obtener una lista de bloques a partir de un
+ * array en formato json
+ * json_blocks: objeto json con el array de numeros
+ * return: puntero al primer bloque de la lista
+**/
+Block* json_to_block(json_object* json_blocks) {
+    int lenght = json_object_array_length(json_blocks);
+
+    // Se verifica si la lista esta vacia
+    if(lenght == 0) return NULL;
+
+    // Obtener numeros del array del json
+    int blocks[lenght];
+    for (int i = 0; i < lenght; i++) {
+        json_object *j_object = json_object_array_get_idx(json_blocks, i);
+        blocks[i] = json_object_get_int(j_object);
+        //json_object_put(j_object);
+    }
+    
+    // Creacion de los bloques
+    return createBlocks(lenght, blocks);
+}

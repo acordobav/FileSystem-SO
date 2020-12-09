@@ -43,6 +43,6 @@
     renombrar: renameElement
     obtener atributos: getFileData
     establecer atributos: 
-	size  -> changeSize
-	name  -> changeName
-	owner -> changeOwner
+	size  -> modifySize
+	name  -> renameElement
+	owner -> modifyOwner
