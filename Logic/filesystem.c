@@ -153,7 +153,7 @@ int renameElement(void* ref, char* oldName, char* newName) {
     Node* node = searchElement(root, oldName);
     if(node != NULL) {
         // Cambio de nombre
-        node->filedata->name = newName;
+        changeName(node->filedata, newName);
         updateTree();
         return 0;
     }
@@ -340,6 +340,8 @@ int writeFile(void* element, char* data) {
         }
         free(buffer);
         free(info);
+        updateLastModified(node->filedata); // Actualizacion fecha modificacion
+        changeSize(node->filedata, length); // Actualizacion tamano del archivo
         updateTree();
     }
     // Se trata de un directorio
