@@ -9,14 +9,19 @@ int blocksize;
 int blocks;
 int min_block;
 
-void startFileSystem() {
+/**
+ * Funcion para iniciar el FileSystem
+ * b_size: tamano de bloque
+ * b_amount: cantidad de bloques
+**/
+void startFileSystem(int b_size, int b_amount) {
     min_block = 0;
-    blocksize = 32;
-    blocks = 100;
+    blocksize = b_size;
+    blocks = b_amount;
     createDisk(blocksize, blocks);
 
     usedBlocks = malloc(blocks*sizeof(int));
-    memset(usedBlocks, 0, blocks*sizeof(int));
+    memset(usedBlocks,0,blocks*sizeof(int));
 }
 
 

@@ -17,9 +17,11 @@ void createDisk(int blocksize, int blocks) {
     memset(buffer, 0, blocksize);
 
     // Escritura de ceros en el archivo
-    if(fwrite(buffer,blocksize,blocks,fptr) != blocks){
-        perror("Error creating the disk file");
-        exit(EXIT_FAILURE);
+    for (int i = 0; i < blocks; i++) {
+        if(fwrite(buffer,blocksize,1,fptr) != 1){
+            perror("Error creating the disk file");
+            exit(EXIT_FAILURE);
+        }
     }
 
     fclose(fptr);
