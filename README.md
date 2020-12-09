@@ -24,6 +24,9 @@
     listado por tiempo de modificacion : ls -t
 
 ### FileSystem Functions
+## Iniciar FileSystem
+    startFileSystem
+
 ## Folder
     crear: mkdir
     eliminar: rmdir
