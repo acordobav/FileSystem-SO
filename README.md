@@ -23,3 +23,23 @@
     listado default: ls | ls -a
     listado por tiempo de modificacion : ls -t
 
+### FileSystem Functions
+## Folder
+    crear: mkdir
+    eliminar: rmdir
+    desplazarse: search
+    renombrar: renameElement
+
+## Files
+    crear: touch
+    eliminar: rm
+    abrir: usar la misma de leer
+    cerrar: -no aplica-
+    leer: readFile
+    escribir: writeFile
+    renombrar: renameElement
+    obtener atributos: getFileData
+    establecer atributos: 
+	size  -> changeSize
+	name  -> changeName
+	owner -> changeOwner
