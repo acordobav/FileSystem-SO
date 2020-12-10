@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DISKFILENAME "disk"
+#define DISKMETADATA "disk0.json"
+#define DISKFILENAME "disk1"
 
 /**
  * Funcion para crear un nuevo archivo de disco

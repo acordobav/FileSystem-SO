@@ -9,6 +9,14 @@ typedef struct Node {
     struct Node* brother;  // Puntero al siguiente hermano  
 } Node;
 
+typedef struct Tree {
+    Node* root;            // Raiz del arbol
+    int blocksize;         // Tamano de bloque
+    int blocks;            // Numero de bloques
+} Tree;
+
+Tree* tree;
+
 Node* createNode(FileData* filedata);
 void backtrackigDelete(Node* root);
 
@@ -169,25 +177,43 @@ Node* json_to_node(json_object* json_node) {
  * Funcion para almacenar el arbol en un archivo .json
  * root: raiz del arbol
 **/
-void tree_to_json(Node* root) {
+void tree_to_json(Tree* tree, char* filename) {
     json_object *j_object = json_object_new_object();
+    json_object *j_tree = json_object_new_object();
 
     // Creacion del json del arbol
-    json_object *j_root = node_to_json(root);
-    json_object_object_add(j_object, "root", j_root);
+    json_object *j_root = node_to_json(tree->root);
+    json_object_object_add(j_tree, "root", j_root);
+
+    // Informacion de tamano de bloque
+    json_object_object_add(j_tree, 
+                           "blocksize", 
+                           json_object_new_int(tree->blocksize));
+
+    // Informacion de cantidad de bloques
+    json_object_object_add(j_tree, 
+                           "blocks", 
+                           json_object_new_int(tree->blocks));
 
     // Escritura en un archivo
-    json_object_to_file("tree.json", j_object);
+    json_object_object_add(j_object, "tree", j_tree); 
+    json_object_to_file(filename, j_object);
     json_object_put(j_object);
 }
 
 /**
- * Funcion para almacenar el arbol en un archivo .json
- * root: raiz del arbol
+ * Funcion para obtener el arbol de un archivo .json
+ * filename: nombre del archivo que contiene la metadata
 **/
-Node* json_to_tree() {
+void json_to_tree(char* filename) {
     // Apertura del archivo
-    FILE *f = fopen("tree.json", "r");
+    FILE *f = fopen(filename, "r");
+    if(f == NULL) {
+        perror("Error opening metadata file");
+        exit(EXIT_FAILURE);
+    }
+
+    // Calculo del tamano total del archivo
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);
     fseek(f, 0, SEEK_SET); 
@@ -199,11 +225,24 @@ Node* json_to_tree() {
 
     // Conversion del string a un arbol
     json_object* parsed_json = json_tokener_parse(buffer);
-    json_object* json_root;
-    json_object_object_get_ex(parsed_json, "root", &json_root);
-    Node* node = json_to_node(json_root);
-    json_object_put(parsed_json);
+    json_object* json_tree;
+    json_object_object_get_ex(parsed_json, "tree", &json_tree);
 
+    // Conversion de la raiz
+    json_object* j_root;
+    json_object_object_get_ex(json_tree, "root", &j_root);
+    tree->root = json_to_node(j_root);
+    
+    // Conversion del tamano de bloque
+    json_object* j_blocksize;
+    json_object_object_get_ex(json_tree, "blocksize", &j_blocksize);
+    tree->blocksize = json_object_get_int(j_blocksize);
+    
+    // Conversion del numero de bloques
+    json_object* j_blocks;
+    json_object_object_get_ex(json_tree, "blocks", &j_blocks);
+    tree->blocks = json_object_get_int(j_blocks);
+
+    json_object_put(parsed_json);
     free(buffer);
-    return node;
 }

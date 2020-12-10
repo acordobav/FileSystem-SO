@@ -5,9 +5,9 @@
 #include "diskhandler.c"
 
 int* usedBlocks;
-int blocksize;
-int blocks;
 int min_block;
+
+void updateTree();
 
 /**
  * Funcion para iniciar el FileSystem
@@ -15,18 +15,34 @@ int min_block;
  * b_amount: cantidad de bloques
 **/
 void startFileSystem(int b_size, int b_amount) {
-    min_block = 0;
-    blocksize = b_size;
-    blocks = b_amount;
-    createDisk(blocksize, blocks);
+    tree = malloc(sizeof(*tree));
 
-    usedBlocks = malloc(blocks*sizeof(int));
-    memset(usedBlocks,0,blocks*sizeof(int));
+    FILE* fptr = fopen(DISKMETADATA, "r");
+    if (fptr == NULL) {
+        //Disco de metadata no existe
+        min_block = 0;
+        tree->blocksize = b_size;
+        tree->blocks = b_amount;
+
+        createDisk(b_size, b_amount); // Creacion del disco
+        tree->root = createRoot(); // Creacion de la raiz del arbol
+        updateTree(); // Creacion del archivo de metadata
+    } else {
+        // Disco de metadata encontrado
+        fclose(fptr);
+        json_to_tree(DISKMETADATA); // Reconstruccion de datos
+    }
+    
+    usedBlocks = malloc(tree->blocks*sizeof(int));
+    memset(usedBlocks,0,tree->blocks*sizeof(int));
 }
 
-
+/**
+ * Funcion para actualizar el archivo de texto que almacena
+ * la metadata del disco, guarda el arbol en formato json
+**/
 void updateTree() {
-    
+    tree_to_json(tree, DISKMETADATA);
 }
 
 /**
@@ -253,7 +269,7 @@ Block* getNewBlocks(int number) {
     int counter = 0;
 
     // Se recorre la lista en busca de bloques disponibles
-    for (int i = min_block; i < blocks; i++) {
+    for (int i = min_block; i < tree->blocks; i++) {
         if(!usedBlocks[i]) { //Bloque disponible
             newBlocks[counter] = i;
             counter++; 
@@ -318,6 +334,7 @@ int writeFile(void* element, char* data) {
     Node* node = (Node*) element;
     if(!node->filedata->isDirectory) {
         int length = strlen(data);
+        int blocksize = tree->blocksize;
 
         // Calculo cantidad de bloques necesarios
         double blockNum = ceil((float) length / blocksize);
@@ -365,6 +382,7 @@ char* readFile(void* element) {
     Block* block = node->filedata->blocks;
     int blockNum = countBlocks(block);
     if(blockNum == 0) return NULL; // Archivo vacio
+    int blocksize = tree->blocksize;
 
     char* read = malloc(blockNum*blocksize);
     memset(read, 0, blockNum*blocksize);
