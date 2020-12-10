@@ -8,6 +8,7 @@ int* usedBlocks;
 int min_block;
 
 void updateTree();
+void loadUsedBlocks();
 
 /**
  * Funcion para iniciar el FileSystem
@@ -35,6 +36,25 @@ void startFileSystem(int b_size, int b_amount) {
     
     usedBlocks = malloc(tree->blocks*sizeof(int));
     memset(usedBlocks,0,tree->blocks*sizeof(int));
+    loadUsedBlocks(tree->root); // Carga de bloques utilizados
+}
+
+/**
+ * Funcion para cargar en la lista de bloques cuales estan
+ * siendo utilizados por el filesystem
+ * node: nodo al cual verificarle los bloques
+**/
+void loadUsedBlocks(Node* node) {
+    // Se recorre el arbol buscando hijos y hermanos
+    if(node->kid != NULL) loadUsedBlocks(node->kid);
+    if(node->brother != NULL) loadUsedBlocks(node->brother);
+
+    // Se recorren los bloques del filedata
+    Block* current = node->filedata->blocks;
+    while(current != NULL) {
+        usedBlocks[current->number] = 1;
+        current = current->next;
+    }
 }
 
 /**
