@@ -28,7 +28,7 @@ unsigned long max_lenght = STRING_MAX_LENGHT*sizeof(char);
  * size: peso del archivo o directorio
  * return: puntero al FileData creado
 */
-FileData* createFileData(char* name, int isDirectory, char* owner, int size) {
+FileData* createFileData(char* name, int isDirectory, char* owner) {
     // Creacion de la estructura
     FileData* fdata = malloc(sizeof(*fdata)); 
     fdata->name = malloc(max_lenght);
@@ -36,7 +36,7 @@ FileData* createFileData(char* name, int isDirectory, char* owner, int size) {
     fdata->owner = malloc(max_lenght);
     fdata->created = malloc(max_lenght);
     fdata->lastModified = malloc(max_lenght);
-    fdata->size = size;
+    fdata->size = 0;
     fdata->blocks = NULL;
     
     // Obtener fecha actual
@@ -243,14 +243,6 @@ FileData* json_to_filedata(json_object* json_filedata) {
                                          (char*) created, 
                                          (char*) lastModified, 
                                          blocks);
-    // Liberar memoria
-    /*json_object_put(json_name);
-    json_object_put(json_isDirectory);
-    json_object_put(json_owner);
-    json_object_put(json_created);
-    json_object_put(json_lastModified);
-    json_object_put(json_size);*/
-    //json_object_put(json_blocks);
 
     return filedata;
 }

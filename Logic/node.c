@@ -16,7 +16,7 @@ void backtrackigDelete(Node* root);
  * Funcion para crear la raiz del arbol
 */
 Node* createRoot() {
-    FileData* filedata = createFileData("root", 1, "system", 0);
+    FileData* filedata = createFileData("root", 1, "system");
     return createNode(filedata);
 }
 
@@ -159,7 +159,7 @@ Node* json_to_node(json_object* json_node) {
     // Conversion del nodo hermano
     json_object* json_brother;
     json_object_object_get_ex(json_node, "brother", &json_brother);
-    if(json_brother != NULL) node->kid = json_to_node(json_brother);
+    if(json_brother != NULL) node->brother = json_to_node(json_brother);
     //json_object_put(json_brother);
 
     return node;
@@ -197,11 +197,13 @@ Node* json_to_tree() {
     fread(buffer, 1, fsize, f);
     fclose(f);
 
-    // Conversion del string a un nodo
+    // Conversion del string a un arbol
     json_object* parsed_json = json_tokener_parse(buffer);
     json_object* json_root;
     json_object_object_get_ex(parsed_json, "root", &json_root);
     Node* node = json_to_node(json_root);
-    //json_object_put(parsed_json);
+    json_object_put(parsed_json);
+
+    free(buffer);
     return node;
 }

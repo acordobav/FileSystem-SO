@@ -47,7 +47,7 @@ FileData* getFileData(void* ref) {
 **/
 int mkdir(void* ref, char* dirname, char* owner) {
     Node* root = (Node*) ref;
-    FileData* filedata = createFileData(dirname, 1, owner, 0);
+    FileData* filedata = createFileData(dirname, 1, owner);
     Node* newNode = createNode(filedata);
     insertNode(root, newNode);
     updateTree();
@@ -176,7 +176,7 @@ void* touch(void* ref, char* name, char* owner) {
     Node* root = (Node*) ref;
 
     // Creacion del nuevo nodo
-    FileData* filedata = createFileData(name, 0, owner, 0);
+    FileData* filedata = createFileData(name, 0, owner);
     Node* newNode = createNode(filedata);
 
     // Insertar en el arbol

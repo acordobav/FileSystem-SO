@@ -120,7 +120,6 @@ Block* json_to_block(json_object* json_blocks) {
     for (int i = 0; i < lenght; i++) {
         json_object *j_object = json_object_array_get_idx(json_blocks, i);
         blocks[i] = json_object_get_int(j_object);
-        //json_object_put(j_object);
     }
     
     // Creacion de los bloques
