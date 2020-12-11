@@ -1,14 +1,13 @@
-#define __USE_XOPEN 700
-#define _GNU_SOURCE
+//#define __USE_XOPEN 700
+//#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
 
 #include "node.c"
+#include "diskhandler.c"
 
 typedef struct Bubble {
     Node* node;
@@ -130,8 +129,8 @@ void timeSort(Bubble* list, int n){
  * root: nodo raiz que contiene los archivos y directorios a listar
  * flag: bandera de ordenamiento del comando, 0 = por defecto, 1 = por tiempo
 */
-FileData** filedataList(Node* root, int flag, int* elem){
-
+FileData** filedataList(void* ref, int flag, int* elem){
+    Node* root = (Node*) ref;
     *elem = countNodeChilds(root);
     int n = *elem;
     //No tiene hijos
@@ -157,13 +156,13 @@ FileData** filedataList(Node* root, int flag, int* elem){
 //Pruebas
 int main(void){
     
-    FileData* filedata1 = createFileData("directorio", 1, "home", 0);
+    FileData* filedata1 = createFileData("directorio", 1, "home");
     sleep(2);
-    FileData* filedata2 = createFileData("archivo1", 0, "directorio", 0);
+    FileData* filedata2 = createFileData("archivo1", 0, "directorio");
     sleep(2);
-    FileData* filedata3 = createFileData("archivo2", 0, "directorio", 0);
+    FileData* filedata3 = createFileData("archivo2", 0, "directorio");
     sleep(2);
-    FileData* filedata4 = createFileData("archivo3", 0, "directorio", 0);
+    FileData* filedata4 = createFileData("archivo3", 0, "directorio");
     sleep(2);
 
     Node* root = createRoot();

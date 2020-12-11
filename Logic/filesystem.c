@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "node.c"
-#include "diskhandler.c"
+#include "ls_function.c"
 
 int* usedBlocks;
 int min_block;
