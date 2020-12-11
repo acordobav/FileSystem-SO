@@ -1,6 +1,18 @@
 # Proyecto 3 - FileSystem
 ## Sistemas Operativos 2020
 
+### Instalation
+    sudo apt-get install libjson-c-dev
+    sudo add-apt-repository ppa:allegro/5.2
+    sudo apt-get install liballegro*5.2 liballegro*5-dev
+    sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
+
+    sudo apt-get install python-tk
+
+### Intrucctions (Interface)
+    make
+    /bin/.FileSystem
+
 ### Terminal Operators
 ## Folder
     crear : mkdir dirname

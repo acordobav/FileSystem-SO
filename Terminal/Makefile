@@ -8,7 +8,7 @@ JSON_FLAGS =  -lm -ljson-c
 APP_NAME = FileSystem
 P_THREAD = -pthread
 REMOVE_F = rm -f
-DISK = disk1
+DISK = bin/disk1
 CC = gcc
 
 all: buildApp

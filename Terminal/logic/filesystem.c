@@ -3,7 +3,7 @@
 
 #include "ls_function.c"
 
-int* usedBlocks;
+int *usedBlocks;
 int min_block;
 
 void updateTree();
@@ -14,27 +14,31 @@ void loadUsedBlocks();
  * b_size: tamano de bloque
  * b_amount: cantidad de bloques
 **/
-void startFileSystem(int b_size, int b_amount) {
+void startFileSystem(int b_size, int b_amount)
+{
     tree = malloc(sizeof(*tree));
 
-    FILE* fptr = fopen(DISKMETADATA, "r");
-    if (fptr == NULL) {
+    FILE *fptr = fopen(DISKMETADATA, "r");
+    if (fptr == NULL)
+    {
         //Disco de metadata no existe
         min_block = 0;
         tree->blocksize = b_size;
         tree->blocks = b_amount;
 
         createDisk(b_size, b_amount); // Creacion del disco
-        tree->root = createRoot(); // Creacion de la raiz del arbol
-        updateTree(); // Creacion del archivo de metadata
-    } else {
+        tree->root = createRoot();    // Creacion de la raiz del arbol
+        updateTree();                 // Creacion del archivo de metadata
+    }
+    else
+    {
         // Disco de metadata encontrado
         fclose(fptr);
         json_to_tree(DISKMETADATA); // Reconstruccion de datos
     }
-    
-    usedBlocks = malloc(tree->blocks*sizeof(int));
-    memset(usedBlocks,0,tree->blocks*sizeof(int));
+
+    usedBlocks = malloc(tree->blocks * sizeof(int));
+    memset(usedBlocks, 0, tree->blocks * sizeof(int));
     loadUsedBlocks(tree->root); // Carga de bloques utilizados
 }
 
@@ -43,14 +47,18 @@ void startFileSystem(int b_size, int b_amount) {
  * siendo utilizados por el filesystem
  * node: nodo al cual verificarle los bloques
 **/
-void loadUsedBlocks(Node* node) {
+void loadUsedBlocks(Node *node)
+{
     // Se recorre el arbol buscando hijos y hermanos
-    if(node->kid != NULL) loadUsedBlocks(node->kid);
-    if(node->brother != NULL) loadUsedBlocks(node->brother);
+    if (node->kid != NULL)
+        loadUsedBlocks(node->kid);
+    if (node->brother != NULL)
+        loadUsedBlocks(node->brother);
 
     // Se recorren los bloques del filedata
-    Block* current = node->filedata->blocks;
-    while(current != NULL) {
+    Block *current = node->filedata->blocks;
+    while (current != NULL)
+    {
         usedBlocks[current->number] = 1;
         current = current->next;
     }
@@ -60,7 +68,8 @@ void loadUsedBlocks(Node* node) {
  * Funcion para actualizar el archivo de texto que almacena
  * la metadata del disco, guarda el arbol en formato json
 **/
-void updateTree() {
+void updateTree()
+{
     tree_to_json(tree, DISKMETADATA);
 }
 
@@ -69,8 +78,9 @@ void updateTree() {
  * ref: puntero del nodo
  * return: FileData del nodo
 **/
-FileData* getFileData(void* ref) {
-    Node* node = (Node*) ref;
+FileData *getFileData(void *ref)
+{
+    Node *node = (Node *)ref;
     return node->filedata;
 }
 
@@ -80,10 +90,11 @@ FileData* getFileData(void* ref) {
  * dirname: nombre del directorio
  * owner: nombre del dueno del directorio
 **/
-int mkdir(void* ref, char* dirname, char* owner) {
-    Node* root = (Node*) ref;
-    FileData* filedata = createFileData(dirname, 1, owner);
-    Node* newNode = createNode(filedata);
+int mkdir(void *ref, char *dirname, char *owner)
+{
+    Node *root = (Node *)ref;
+    FileData *filedata = createFileData(dirname, 1, owner);
+    Node *newNode = createNode(filedata);
     insertNode(root, newNode);
     updateTree();
     return 0;
@@ -97,16 +108,21 @@ int mkdir(void* ref, char* dirname, char* owner) {
  * return: NULL -> elemento no encontrado
  *         puntero -> elemento encontrado
  **/
-Node* searchElement(Node* root, char* name) {
-    Node* current = root->kid;
+Node *searchElement(Node *root, char *name)
+{
+    Node *current = root->kid;
 
     // Se busca el nodo que se deseado
-    while(current != NULL) {
+    while (current != NULL)
+    {
         // Se compara el nombre del nodo con dirname
-        if(strcmp(current->filedata->name, name) != 0) {
+        if (strcmp(current->filedata->name, name) != 0)
+        {
             // Nombres no coinciden
             current = current->brother;
-        } else {
+        }
+        else
+        {
             return current;
         }
     }
@@ -123,24 +139,32 @@ Node* searchElement(Node* root, char* name) {
  *          2 -> elemento no es un directorio
  *          3 -> elemento no encontrado
 **/
-int rmdir_(void* ref, char* dirname) {
-    Node* root = (Node*) ref;
-    Node* current = root->kid;
+int rmdir_(void *ref, char *dirname)
+{
+    Node *root = (Node *)ref;
+    Node *current = root->kid;
 
     // Se busca el nodo que se desea eliminar
-    while(current != NULL) {
+    while (current != NULL)
+    {
         // Se compara el nombre del nodo con dirname
-        if(strcmp(current->filedata->name, dirname) != 0) {
+        if (strcmp(current->filedata->name, dirname) != 0)
+        {
             // Nombres no coinciden
             current = current->brother;
-        } else {
+        }
+        else
+        {
             // Nodo encontrado, se procede a borrarlo
-            if(current->filedata->isDirectory) {
+            if (current->filedata->isDirectory)
+            {
                 // Nodo encontrado es un directorio
                 int r = deleteNode(root, current);
                 updateTree();
                 return r;
-            } else {
+            }
+            else
+            {
                 // Nodo encontrado es un archivo
                 return 2;
             }
@@ -157,16 +181,19 @@ int rmdir_(void* ref, char* dirname) {
  *        no debe incluise el nodo de referencia
  * return: puntero al nodo obtenido, NULL en caso de no encontrarse
 **/
-void* search(void* ref, char* route) {
-    Node* current = (Node*) ref;
-    char* sroute = malloc((strlen(route)+1)*sizeof(char));
+void *search(void *ref, char *route)
+{
+    Node *current = (Node *)ref;
+    char *sroute = malloc((strlen(route) + 1) * sizeof(char));
     strcpy(sroute, route);
-    char* token = strtok(sroute, "/");
+    char *token = strtok(sroute, "/");
 
     // Busqueda a partir del nodo de referencia (current)
-    while(token != NULL) {
+    while (token != NULL)
+    {
         current = searchElement(current, token);
-        if(current == NULL) {
+        if (current == NULL)
+        {
             free(sroute);
             return NULL;
         }
@@ -186,12 +213,14 @@ void* search(void* ref, char* route) {
  * return: 0 -> renombramiento exitoso
  *         1 -> archivo/directorio no encontrado
 **/
-int renameElement(void* ref, char* oldName, char* newName) {
-    Node* root = (Node*) ref;
+int renameElement(void *ref, char *oldName, char *newName)
+{
+    Node *root = (Node *)ref;
 
     // Busqueda del elemento
-    Node* node = searchElement(root, oldName);
-    if(node != NULL) {
+    Node *node = searchElement(root, oldName);
+    if (node != NULL)
+    {
         // Cambio de nombre
         changeName(node->filedata, newName);
         updateTree();
@@ -207,12 +236,13 @@ int renameElement(void* ref, char* oldName, char* newName) {
  * name: nombre del archivo
  * owner: nombre del dueno
 **/
-void* touch(void* ref, char* name, char* owner) {
-    Node* root = (Node*) ref;
+void *touch(void *ref, char *name, char *owner)
+{
+    Node *root = (Node *)ref;
 
     // Creacion del nuevo nodo
-    FileData* filedata = createFileData(name, 0, owner);
-    Node* newNode = createNode(filedata);
+    FileData *filedata = createFileData(name, 0, owner);
+    Node *newNode = createNode(filedata);
 
     // Insertar en el arbol
     insertNode(root, newNode);
@@ -225,14 +255,16 @@ void* touch(void* ref, char* name, char* owner) {
  * Funcion para eliminar una lista de bloques
  * block: primer elemento de la lista
 **/
-void deleteBlocks(Block* block) {
-    if(block->next != NULL) deleteBlocks(block->next);
+void deleteBlocks(Block *block)
+{
+    if (block->next != NULL)
+        deleteBlocks(block->next);
     usedBlocks[block->number] = 0; // Se marca el bloque como disponible
 
     // Se actualiza el minimo bloque disponible
-    if(min_block > block->number) 
+    if (min_block > block->number)
         min_block = block->number;
-    
+
     freeBlock(block);
 }
 
@@ -242,17 +274,19 @@ void deleteBlocks(Block* block) {
  * block: primer elemento de la lista
  * neededBlocks: numero de bloques que no se deben borrar
 **/
-void removeBlocks(Block* first, int neededBlocks) {
-    Block* block = first;
-    Block* previous = NULL;
-    for (int i = 0; i < neededBlocks; i++) {
+void removeBlocks(Block *first, int neededBlocks)
+{
+    Block *block = first;
+    Block *previous = NULL;
+    for (int i = 0; i < neededBlocks; i++)
+    {
         previous = block;
         block = block->next;
     }
     previous->next = NULL;
     deleteBlocks(block);
 }
-    
+
 /**
  * Funcion para eliminar un archivo
  * ref: nodo de referencia (raiz) del elemento
@@ -261,10 +295,13 @@ void removeBlocks(Block* first, int neededBlocks) {
  *         1 -> elemento es un directorio
  *         2 -> archivo no encontrado
 **/
-int rm(void* ref, char* name) {
-    Node* node = searchElement(ref, name);
-    if(node != NULL) {
-        if(!node->filedata->isDirectory){
+int rm(void *ref, char *name)
+{
+    Node *node = searchElement(ref, name);
+    if (node != NULL)
+    {
+        if (!node->filedata->isDirectory)
+        {
             // Elemento es un archivo
             deleteBlocks(node->filedata->blocks);
             deleteNode(ref, node);
@@ -283,26 +320,31 @@ int rm(void* ref, char* name) {
  * number: cantidad de bloques solicitados
  * return: puntero al primer elemento de la lista de bloques
 **/
-Block* getNewBlocks(int number) {
+Block *getNewBlocks(int number)
+{
     int newBlocks[number];
     int counter = 0;
 
     // Se recorre la lista en busca de bloques disponibles
-    for (int i = min_block; i < tree->blocks; i++) {
-        if(!usedBlocks[i]) { //Bloque disponible
+    for (int i = min_block; i < tree->blocks; i++)
+    {
+        if (!usedBlocks[i])
+        { //Bloque disponible
             newBlocks[counter] = i;
-            counter++; 
+            counter++;
             usedBlocks[i] = 1;
             min_block = i;
-            if(counter == number) break; // Condicion parada
+            if (counter == number)
+                break; // Condicion parada
         }
     }
     // Si counter es diferente de number, significa que no
     // hay suficiente espacio disponible en el disco
-    if(counter != number) return NULL;
-    
+    if (counter != number)
+        return NULL;
+
     // Creacion de la lista de bloques
-    Block* new_blocks = createBlocks(number, newBlocks);
+    Block *new_blocks = createBlocks(number, newBlocks);
     return new_blocks;
 }
 
@@ -313,25 +355,29 @@ Block* getNewBlocks(int number) {
  * return: 0 -> asignacion exitosa
  *         2 -> espacio insuficiente en disco
 **/
-int assignBlocks(Node* node, int blockNum) {
+int assignBlocks(Node *node, int blockNum)
+{
     int assignedBlocks = countBlocks(node->filedata->blocks);
     int newBlocks = blockNum - assignedBlocks;
 
-    if(newBlocks < 0) {
+    if (newBlocks < 0)
+    {
         // Es necesario liberar bloques
         int needed = assignedBlocks + newBlocks;
         removeBlocks(node->filedata->blocks, needed);
-
-    } else if(newBlocks > 0) {
+    }
+    else if (newBlocks > 0)
+    {
         // Reserva de bloques
-        Block* block = getNewBlocks(newBlocks);
-        if(block == NULL) {
+        Block *block = getNewBlocks(newBlocks);
+        if (block == NULL)
+        {
             // No hay espacio suficiente
             deleteBlocks(block);
             return 2;
         }
-        if(node->filedata->blocks != NULL)
-            // Ya exiten bloques asignados 
+        if (node->filedata->blocks != NULL)
+            // Ya exiten bloques asignados
             appendBlocks(node->filedata->blocks, block);
         else
             // No existen nodos asignados
@@ -339,7 +385,6 @@ int assignBlocks(Node* node, int blockNum) {
     }
     return 0;
 }
-
 
 /**
  * Funcion para escribir en un archivo
@@ -349,33 +394,37 @@ int assignBlocks(Node* node, int blockNum) {
  *         1 -> elemento es un directorio 
  *         2 -> no hay espacio suficiente
 **/
-int writeFile(void* element, char* data) {
-    Node* node = (Node*) element;
-    if(!node->filedata->isDirectory) {
+int writeFile(void *element, char *data)
+{
+    Node *node = (Node *)element;
+    if (!node->filedata->isDirectory)
+    {
         int length = strlen(data);
         int blocksize = tree->blocksize;
 
         // Calculo cantidad de bloques necesarios
-        double blockNum = ceil((float) length / blocksize);
+        double blockNum = ceil((float)length / blocksize);
         // Asignacion de bloques
-        if(assignBlocks(node, blockNum) == 2) return 2;
-        
+        if (assignBlocks(node, blockNum) == 2)
+            return 2;
+
         // Copia de la informacion que debe ser escrita
-        char* info = (char*) malloc(blockNum*blocksize);
-        memset(info, 0, blockNum*blocksize);
+        char *info = (char *)malloc(blockNum * blocksize);
+        memset(info, 0, blockNum * blocksize);
         strcpy(info, data);
 
         // Escritura en disco
-        char* current = info;
-        char* buffer = (char*) malloc(blocksize);
-        Block* block = node->filedata->blocks;
-        for (int i = 0; i < blockNum; i++) {
-            memset(buffer, 0, blocksize); // Limpieza del buffer
+        char *current = info;
+        char *buffer = (char *)malloc(blocksize);
+        Block *block = node->filedata->blocks;
+        for (int i = 0; i < blockNum; i++)
+        {
+            memset(buffer, 0, blocksize);       // Limpieza del buffer
             memcpy(buffer, current, blocksize); // Copia de la info en el buffer
 
             //Escritura en el bloque correspondiente
             dwrite(buffer, block->number, blocksize);
-            
+
             current += blocksize;
             block = block->next;
         }
@@ -395,21 +444,24 @@ int writeFile(void* element, char* data) {
  * return: string con la informacion almacenada
  *         NULL -> archivo vacio
 **/
-char* readFile(void* element) {
-    Node* node = (Node*) element;
+char *readFile(void *element)
+{
+    Node *node = (Node *)element;
 
-    Block* block = node->filedata->blocks;
+    Block *block = node->filedata->blocks;
     int blockNum = countBlocks(block);
-    if(blockNum == 0) return NULL; // Archivo vacio
+    if (blockNum == 0)
+        return NULL; // Archivo vacio
     int blocksize = tree->blocksize;
 
-    char* read = malloc(blockNum*blocksize);
-    memset(read, 0, blockNum*blocksize);
+    char *read = malloc(blockNum * blocksize);
+    memset(read, 0, blockNum * blocksize);
 
     // Lectura de disco
-    void* current = read;
-    for (int i = 0; i < blockNum; i++) {
-        char* data = dread(block->number, blocksize);
+    void *current = read;
+    for (int i = 0; i < blockNum; i++)
+    {
+        char *data = dread(block->number, blocksize);
         memcpy(current, data, blocksize);
         current += blocksize;
         block = block->next;
@@ -424,8 +476,9 @@ char* readFile(void* element) {
  * ref: nodo que tiene el filedata que se tiene que cambiar
  * newName: nuevo nombre
 **/
-void modifyOwner(void* ref, char* newName) {
-    Node* node = (Node*) ref;
+void modifyOwner(void *ref, char *newName)
+{
+    Node *node = (Node *)ref;
     changeOwner(node->filedata, newName);
 }
 
@@ -434,7 +487,17 @@ void modifyOwner(void* ref, char* newName) {
  * ref: nodo que tiene el filedata que se tiene que cambiar
  * newSize: nuevo tamano
 **/
-void modifySize(void* ref, int newSize) {
-    Node* node = (Node*) ref;
+void modifySize(void *ref, int newSize)
+{
+    Node *node = (Node *)ref;
     changeSize(node->filedata, newSize);
+}
+
+void showVisualicer()
+{
+    if (system("google-chrome ../../Visualization/view.html &") == 0) { }
+    else if (system("firefox ../../Visualization/view.html &") == 0) { }
+    else if (system("chromium-browser ../../Visualization/view.html &") == 0) { }
+    else if (system("opera ../../Visualization/view.html &") == 0) { }
+    else { printf("Please, open view.html directly.!"); }
 }

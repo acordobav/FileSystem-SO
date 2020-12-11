@@ -55,7 +55,63 @@ bool RedrawIsReady(void)
   }
 }
 
-void callAction()
+void regexTerminal(int REG_KEY)
+{
+  switch (REG_KEY)
+  {
+  case 1:
+    /* code */
+    break;
+  case 2:
+    /* code */
+    break;
+  case 3:
+    /* code */
+    break;
+  case 4:
+    /* code */
+    break;
+  case 5:
+    /* code */
+    break;
+  case 6:
+    /* code */
+    break;
+  case 7:
+    /* code */
+    break;
+  case 8:
+    /* code */
+    break;
+  case 9:
+    /* code */
+    break;
+  case 10:
+    /* code */
+    break;
+  case 11:
+    /* code */
+    break;
+  case 12:
+    /* code */
+    break;
+  case 13:
+    /* code */
+    break;
+  case 14:
+    /* code */
+    break;
+  case 15:
+    showVisualicer();
+  case 16:
+    /* code */
+    break;
+  default:
+    break;
+  }
+}
+
+void validateInput()
 {
   // Folder
   int r_mkdir = regcomp(&regex, __r_mkdir, REG_EXTENDED);
@@ -102,7 +158,10 @@ void callAction()
   int r_ls_time = regcomp(&regex, __r_ls_time, REG_EXTENDED);
   int R_LS_TIME = regexec(&regex, text_terminal, 0, NULL, 0);
 
-  if (!r_close && !r_mkdir && !r_rmdir && !r_mv_folder && !r_mv_rename_folder && !r_rm_unlink && !r_mv_file && !r_touch && !r_cat && !r_get && !r_cat_write && !r_less && !r_close && !r_ls && !r_ls_time)
+  int r_vs = regcomp(&regex, __r_vs, REG_EXTENDED);
+  int R_VS = regexec(&regex, text_terminal, 0, NULL, 0);
+
+  if (!r_close && !r_mkdir && !r_rmdir && !r_mv_folder && !r_mv_rename_folder && !r_rm_unlink && !r_mv_file && !r_touch && !r_cat && !r_get && !r_cat_write && !r_less && !r_close && !r_ls && !r_ls_time && !r_vs)
     puts("Regular expression(s) compiled successfully.");
   else
     puts("Compilation error.");
@@ -137,6 +196,8 @@ void callAction()
     REG_KEY = 13;
   else if (!R_LS_TIME)
     REG_KEY = 14;
+  else if (!R_VS)
+    REG_KEY = 15;
   else
   {
     puts("---- ERROR ---");
@@ -146,11 +207,8 @@ void callAction()
   if (REG_KEY != 0)
   {
     strcpy(text_terminal, "> ");
+    regexTerminal(REG_KEY);
   }
-}
-
-int regexTerminal()
-{
 }
 
 void keyBoardController(ALLEGRO_EVENT_TYPE keyType, int keycode)
@@ -259,7 +317,7 @@ void keyBoardController(ALLEGRO_EVENT_TYPE keyType, int keycode)
       text_terminal[strlen(text_terminal) - 1] = '\0';
     // ENTER
     else if (keycode == ALLEGRO_KEY_ENTER || keycode == ALLEGRO_KEY_PAD_ENTER)
-      callAction();
+      validateInput();
   }
 }
 

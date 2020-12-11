@@ -16,11 +16,12 @@ static const char *__r_cat = "cat([[:space:]]+)([[:alnum:]]+).([[:alpha:]]+)$";
 static const char *__r_get = "get([[:space:]]+)([[:alnum:]]+).([[:alpha:]]+)$";
 static const char *__r_cat_write = "cat([[:space:]]+)>>([[:space:]]+)([[:alnum:]]+).([[:alpha:]]+)$";
 static const char *__r_less = "less([[:space:]]+)([[:alnum:]]+).([[:alpha:]]+)$";
-static const char *__r_close = "close$";
+static const char *__r_vs = "vs -f([[:space:]]*)$";
 
 
 //Other - Display
 static const char *__r_ls = "(ls|ls -a)$";
 static const char *__r_ls_time = "ls -t$";
+static const char *__r_close = "close$";
 
 #endif
