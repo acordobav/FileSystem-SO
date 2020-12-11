@@ -1,8 +1,12 @@
+#define __USE_XOPEN 700
+#define _GNU_SOURCE
+
 #include <time.h>
 #include <regex.h>
 #include <stdio.h>
 #include <assert.h>
 #include <signal.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <consts_regex.h>
@@ -10,6 +14,8 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_native_dialog.h>
+
+#include "./logic/filesystem.c"
 
 const float FPS = 30;
 const int SCREEN_W = 608;
@@ -278,6 +284,23 @@ code HandleEvent(ALLEGRO_EVENT ev)
 
 int main(int argc, char *argv[])
 {
+
+  startFileSystem(32, 10000);
+
+  Node *file1 = touch(tree->root, "file1.txt", "Arthur-Satellite");
+  char *msg = "Mensaje secreto ultraimportante para el gobierno costarricense";
+  writeFile(file1, msg);
+
+  mkdir(tree->root, "TEC", "Rogers");
+  void *ref = search(tree->root, "TEC");
+  void *file2 = touch(ref, "Algebra", "Rogers");
+  writeFile(file2, msg);
+
+  void *file3 = touch(tree->root, "Examen 2.pdf", "Arthur");
+  writeFile(file3, msg);
+
+  //tree_to_json(tree, DISKMETADATA);
+
   al_init();
   if (!al_install_keyboard())
   {

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DISKMETADATA "disk0.json"
+#define DISKMETADATA "../json/disk0.json"
 #define DISKFILENAME "disk1"
 
 /**

@@ -123,7 +123,7 @@ Node* searchElement(Node* root, char* name) {
  *          2 -> elemento no es un directorio
  *          3 -> elemento no encontrado
 **/
-int rmdir(void* ref, char* dirname) {
+int rmdir_(void* ref, char* dirname) {
     Node* root = (Node*) ref;
     Node* current = root->kid;
 
