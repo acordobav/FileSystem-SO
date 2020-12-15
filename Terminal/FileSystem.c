@@ -21,6 +21,11 @@ const float FPS = 30;
 const int SCREEN_W = 608;
 const int SCREEN_H = 588;
 
+char SystemOwner[20] = "system";
+Node *currentFolder;
+
+/* char str[]; */
+char *ffName;
 int Shift = 0;
 int REG_KEY = 0;
 typedef int code;
@@ -55,12 +60,30 @@ bool RedrawIsReady(void)
   }
 }
 
+char *splitRegex(int index)
+{
+  char *token;
+  char *rest = text_terminal;
+  int i = 0;
+
+  while ((token = strtok_r(rest, " ", &rest)))
+  {
+    if (i == index + 1)
+      break;
+    i++;
+  }
+
+  return token;
+}
+
 void regexTerminal(int REG_KEY)
 {
   switch (REG_KEY)
   {
   case 1:
-    /* code */
+    ffName = splitRegex(1);
+    printf("--> currentFolder : %s \t ffName : %s \t SystemOwner : %s\n", currentFolder->filedata->name, ffName, SystemOwner);
+    mkdir(currentFolder, ffName, SystemOwner);
     break;
   case 2:
     /* code */
@@ -78,7 +101,11 @@ void regexTerminal(int REG_KEY)
     /* code */
     break;
   case 7:
-    /* code */
+    ffName = splitRegex(1);
+    printf("--> %s\n", ffName);
+    Node *file1 = touch(currentFolder, ffName, SystemOwner);
+    char *msg = "";
+    writeFile(file1, msg);
     break;
   case 8:
     /* code */
@@ -161,6 +188,9 @@ void validateInput()
   int r_vs = regcomp(&regex, __r_vs, REG_EXTENDED);
   int R_VS = regexec(&regex, text_terminal, 0, NULL, 0);
 
+  //3. Free it
+  // regfree(&regex);
+
   if (!r_close && !r_mkdir && !r_rmdir && !r_mv_folder && !r_mv_rename_folder && !r_rm_unlink && !r_mv_file && !r_touch && !r_cat && !r_get && !r_cat_write && !r_less && !r_close && !r_ls && !r_ls_time && !r_vs)
     puts("Regular expression(s) compiled successfully.");
   else
@@ -206,8 +236,8 @@ void validateInput()
   }
   if (REG_KEY != 0)
   {
-    strcpy(text_terminal, "> ");
     regexTerminal(REG_KEY);
+    strcpy(text_terminal, "> ");
   }
 }
 
@@ -342,12 +372,18 @@ code HandleEvent(ALLEGRO_EVENT ev)
 
 int main(int argc, char *argv[])
 {
+  printf("Username: ");
+  scanf("%s", SystemOwner);
 
   startFileSystem(32, 10000);
 
-  Node *file1 = touch(tree->root, "file1.txt", "Arthur-Satellite");
-  char *msg = "Mensaje secreto ultraimportante para el gobierno costarricense";
+  currentFolder = tree->root;
+
+  /*   Node *file1 = touch(currentFolder, "file1.txt", SystemOwner);
+  char *msg = "";
   writeFile(file1, msg);
+
+  return 0;
 
   mkdir(tree->root, "TEC", "Rogers");
   void *ref = search(tree->root, "TEC");
@@ -355,7 +391,7 @@ int main(int argc, char *argv[])
   writeFile(file2, msg);
 
   void *file3 = touch(tree->root, "Examen 2.pdf", "Arthur");
-  writeFile(file3, msg);
+  writeFile(file3, msg); */
 
   //tree_to_json(tree, DISKMETADATA);
 
