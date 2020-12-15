@@ -86,7 +86,9 @@ void regexTerminal(int REG_KEY)
     mkdir(currentFolder, ffName, SystemOwner);
     break;
   case 2:
-    /* code */
+    ffName = splitRegex(1);
+    printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
+    rmdir_(currentFolder, ffName);
     break;
   case 3:
     /* code */
@@ -192,7 +194,7 @@ void validateInput()
   // regfree(&regex);
 
   if (!r_close && !r_mkdir && !r_rmdir && !r_mv_folder && !r_mv_rename_folder && !r_rm_unlink && !r_mv_file && !r_touch && !r_cat && !r_get && !r_cat_write && !r_less && !r_close && !r_ls && !r_ls_time && !r_vs)
-    puts("Regular expression(s) compiled successfully.");
+    puts("");
   else
     puts("Compilation error.");
 
