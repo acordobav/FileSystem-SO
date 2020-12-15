@@ -36,12 +36,15 @@ char *directoryName = "";
 char *new_ffName;
 
 char text_terminal[70];
+int text_terminal_vertical = 30;
+
 char text_terminal_output[255];
 char aux_text_terminal[70];
 
 bool ERROR_TERMINAL = false;
 bool REDRAW_IS_READY = false;
 bool TERMINAL_OUTPUT = false;
+bool Is_WRITING = false;
 
 regex_t regex;
 ALLEGRO_FONT *font;
@@ -186,8 +189,7 @@ void regexTerminal(int REG_KEY)
     ffName = splitRegex(1);
     printf("--> %s\n", ffName);
     Node *file1 = touch(currentFolder, ffName, SystemOwner);
-    char *msg = "";
-    writeFile(file1, msg);
+    writeFile(file1, "");
     break;
   case 8:
     ffName = splitRegex(1);
@@ -230,7 +232,9 @@ void regexTerminal(int REG_KEY)
 
     break;
   case 10:
-    puts("10");
+    Is_WRITING = true;
+    text_terminal_vertical = 70;
+    ffName = splitRegex(2);
     break;
   case 11:
     ffName = splitRegex(1);
@@ -263,6 +267,44 @@ void regexTerminal(int REG_KEY)
   default:
     break;
   }
+}
+
+void write_File(char text[70])
+{
+  printf("--> %s\n", ffName);
+  char *chopped_text = text + 2;
+
+  printf("text_terminal: %s\n", chopped_text);
+
+  SearchedNode = searchElement(currentFolder, ffName);
+
+  data_msg = readFile(SearchedNode);
+
+  char msg[255] = "\n\n";
+
+  strcat(msg, chopped_text);
+
+  strcat(data_msg, msg);
+
+  int r = writeFile(SearchedNode, "text");
+
+  if (r == 0)
+  {
+    puts("exito");
+  }
+  else if (r == 1)
+  {
+    puts("elemento es un directorio ");
+  }
+  else
+  {
+    puts("no hay espacio suficiente");
+  }
+
+  Is_WRITING = false;
+  TERMINAL_OUTPUT = false;
+  text_terminal_vertical = 30;
+  strcpy(text_terminal, "> ");
 }
 
 void validateInput()
@@ -471,8 +513,11 @@ void keyBoardController(ALLEGRO_EVENT_TYPE keyType, int keycode)
     else if (keycode == ALLEGRO_KEY_BACKSPACE && strlen(text_terminal) > 2)
       text_terminal[strlen(text_terminal) - 1] = '\0';
     // ENTER
-    else if (keycode == ALLEGRO_KEY_ENTER || keycode == ALLEGRO_KEY_PAD_ENTER)
+    else if ((keycode == ALLEGRO_KEY_ENTER || keycode == ALLEGRO_KEY_PAD_ENTER) && Is_WRITING == false)
       validateInput();
+    // ENTER
+    else if ((keycode == ALLEGRO_KEY_ENTER || keycode == ALLEGRO_KEY_PAD_ENTER) && Is_WRITING == true)
+      write_File(text_terminal);
   }
 }
 
@@ -508,20 +553,9 @@ int main(int argc, char *argv[])
   currentFolder = tree->root;
   directoryName = currentFolder->filedata->name;
 
-  Node *file1 = touch(currentFolder, "w.w", SystemOwner);
+/*   Node *file1 = touch(currentFolder, "w.w", SystemOwner);
   char *msg = "Hola mundo";
-  writeFile(file1, msg);
-
-  /*
-  mkdir(tree->root, "TEC", "Rogers");
-  void *ref = search(tree->root, "TEC");
-  void *file2 = touch(ref, "Algebra", "Rogers");
-  writeFile(file2, msg);
-
-  void *file3 = touch(tree->root, "Examen 2.pdf", "Arthur");
-  writeFile(file3, msg); */
-
-  //tree_to_json(tree, DISKMETADATA);
+  writeFile(file1, msg); */
 
   al_init();
   if (!al_install_keyboard())
@@ -571,7 +605,7 @@ int main(int argc, char *argv[])
 
     if (RedrawIsReady() && al_is_event_queue_empty(event_queue))
     {
-      al_draw_text(font, al_map_rgb(255, 255, 220), 30, 30, ALLEGRO_ALIGN_LEFT, text_terminal);
+      al_draw_text(font, al_map_rgb(255, 255, 220), 30, text_terminal_vertical, ALLEGRO_ALIGN_LEFT, text_terminal);
 
       al_draw_text(font, al_map_rgb(255, 255, 220), 20, 10, ALLEGRO_ALIGN_LEFT, "~");
       al_draw_text(font, al_map_rgb(255, 255, 220), 30, 7, ALLEGRO_ALIGN_LEFT, directoryName);
