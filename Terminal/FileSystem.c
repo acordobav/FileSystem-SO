@@ -24,8 +24,10 @@ const int SCREEN_H = 588;
 char SystemOwner[20] = "system";
 Node *currentFolder;
 Node *previousFolder;
+Node *SearchedNode;
 
 int rne;
+char *data_msg;
 char *ffName;
 int Shift = 0;
 int REG_KEY = 0;
@@ -188,13 +190,24 @@ void regexTerminal(int REG_KEY)
     writeFile(file1, msg);
     break;
   case 8:
-    puts("8");
+    ffName = splitRegex(1);
+    printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
+    SearchedNode = searchElement(currentFolder, ffName);
+    data_msg = readFile(SearchedNode);
+
+    strcat(text_terminal_output, "File Name: ");
+    strcat(text_terminal_output, ffName);
+    strcat(text_terminal_output, "\n\n\n");
+    strcat(text_terminal_output, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n");
+    strcat(text_terminal_output, data_msg);
+
+    TERMINAL_OUTPUT = true;
     break;
   case 9:
     ffName = splitRegex(1);
     printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
-    Node *N_FD = searchElement(currentFolder, ffName);
-    FileData *FD = getFileData(N_FD);
+    SearchedNode = searchElement(currentFolder, ffName);
+    FileData *FD = getFileData(SearchedNode);
 
     strcat(text_terminal_output, "File Name: ");
     strcat(text_terminal_output, ffName);
@@ -220,10 +233,21 @@ void regexTerminal(int REG_KEY)
     puts("10");
     break;
   case 11:
-    puts("11");
+    ffName = splitRegex(1);
+    printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
+    SearchedNode = searchElement(currentFolder, ffName);
+    data_msg = readFile(SearchedNode);
+
+    strcat(text_terminal_output, "File Name: ");
+    strcat(text_terminal_output, ffName);
+    strcat(text_terminal_output, "\n\n\n");
+    strcat(text_terminal_output, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n");
+    strcat(text_terminal_output, data_msg);
+
+    TERMINAL_OUTPUT = true;
     break;
   case 12:
-    puts("12");
+    puts("close..");
     break;
   case 13:
     puts("13");
@@ -484,10 +508,11 @@ int main(int argc, char *argv[])
   currentFolder = tree->root;
   directoryName = currentFolder->filedata->name;
 
-  /*   Node *file1 = touch(currentFolder, "file1.txt", SystemOwner);
-  char *msg = "";
+  Node *file1 = touch(currentFolder, "w.w", SystemOwner);
+  char *msg = "Hola mundo";
   writeFile(file1, msg);
 
+  /*
   mkdir(tree->root, "TEC", "Rogers");
   void *ref = search(tree->root, "TEC");
   void *file2 = touch(ref, "Algebra", "Rogers");

@@ -23,6 +23,6 @@ static const char *__r_vs = "vs -f([[:space:]]*)$";
 //Other - Display
 static const char *__r_ls = "(ls|ls -a)$";
 static const char *__r_ls_time = "ls -t$";
-static const char *__r_close = "close$";
+static const char *__r_close = "([[:space:]]*)close([[:space:]]*)$";
 
 #endif
