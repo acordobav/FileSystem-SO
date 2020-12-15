@@ -29,7 +29,11 @@ char *ffName;
 int Shift = 0;
 int REG_KEY = 0;
 typedef int code;
+char *directoryName = "";
+
 char text_terminal[70];
+char aux_text_terminal[70];
+
 bool ERROR_TERMINAL = false;
 bool REDRAW_IS_READY = false;
 
@@ -62,6 +66,7 @@ bool RedrawIsReady(void)
 
 char *splitRegex(int index)
 {
+  strcpy(aux_text_terminal, text_terminal);
   char *token;
   char *rest = text_terminal;
   int i = 0;
@@ -92,14 +97,13 @@ void regexTerminal(int REG_KEY)
     break;
   case 3:
     ffName = splitRegex(1);
-    printf("--> ffName : >%s< \n", ffName);
-
     int r = strcmp(ffName, "..");
-    printf("--> r : >%d< \n", r);
 
     if (r == 0 && previousFolder != NULL)
     {
+      directoryName = "";
       currentFolder = previousFolder;
+      directoryName = currentFolder->filedata->name;
       printf("--> currentFolder : %s \n", currentFolder->filedata->name);
     }
     else
@@ -108,10 +112,10 @@ void regexTerminal(int REG_KEY)
       Node *temp = (Node *)ref;
       if (temp != NULL)
       {
+        directoryName = "";
         previousFolder = currentFolder;
-        printf("--> previousFolder : %s \n", previousFolder->filedata->name);
-
         currentFolder = temp;
+        directoryName = currentFolder->filedata->name;
         printf("--> currentFolder : %s \n", currentFolder->filedata->name);
       }
       else
@@ -119,16 +123,28 @@ void regexTerminal(int REG_KEY)
         puts("Error..........");
       }
     }
-
     break;
   case 4:
-    /* code */
+    ffName = splitRegex(1);
+    strcpy(text_terminal, aux_text_terminal);
+    char *new_ffName = splitRegex(2);
+    printf("rename > %s -> %s\n", ffName, new_ffName);
+
+    int rne = renameElement(currentFolder, ffName, new_ffName);
+    if (rne == 0)
+    {
+      puts("Exito");
+    }
+    else
+    {
+      puts("error");
+    }
     break;
   case 5:
-    /* code */
+    puts("5");
     break;
   case 6:
-    /* code */
+    puts("6");
     break;
   case 7:
     ffName = splitRegex(1);
@@ -138,30 +154,30 @@ void regexTerminal(int REG_KEY)
     writeFile(file1, msg);
     break;
   case 8:
-    /* code */
+    puts("8");
     break;
   case 9:
-    /* code */
+    puts("9");
     break;
   case 10:
-    /* code */
+    puts("10");
     break;
   case 11:
-    /* code */
+    puts("11");
     break;
   case 12:
-    /* code */
+    puts("12");
     break;
   case 13:
-    /* code */
+    puts("13");
     break;
   case 14:
-    /* code */
+    puts("14");
     break;
   case 15:
     showVisualicer();
   case 16:
-    /* code */
+    puts("16");
     break;
   default:
     break;
@@ -399,6 +415,9 @@ code HandleEvent(ALLEGRO_EVENT ev)
 
 int main(int argc, char *argv[])
 {
+
+  // strcpy(text_terminal, "mv   f1   folder1");
+
   printf("Username: ");
   scanf("%s", SystemOwner);
 
@@ -409,8 +428,6 @@ int main(int argc, char *argv[])
   /*   Node *file1 = touch(currentFolder, "file1.txt", SystemOwner);
   char *msg = "";
   writeFile(file1, msg);
-
-  return 0;
 
   mkdir(tree->root, "TEC", "Rogers");
   void *ref = search(tree->root, "TEC");
@@ -463,12 +480,16 @@ int main(int argc, char *argv[])
 
   while (code == CODE_CONTINUE)
   {
+    al_clear_to_color(BLACK); // TODO: check if this line es necessary!! - showing directoryName
+
     al_draw_bitmap(TOP_img, XYZ_TOP);
     al_draw_bitmap(TERMINAL_img, XYZ_TERMINAL);
 
     if (RedrawIsReady() && al_is_event_queue_empty(event_queue))
     {
       al_draw_text(font, al_map_rgb(255, 255, 220), 30, 30, ALLEGRO_ALIGN_LEFT, text_terminal);
+
+      al_draw_text(font, al_map_rgb(255, 255, 220), 30, 7, ALLEGRO_ALIGN_LEFT, directoryName);
 
       if (ERROR_TERMINAL)
       {

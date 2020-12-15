@@ -17,7 +17,7 @@
 ## Folder
     crear : mkdir dirname
     eliminar : rmdir dirname
-    desplazarse : mv path/source_dirname path/dest_dirname
+    desplazarse : mv old_dirname new_dirname
     renombrar : mv source_dirname dest_dirname
 
 ## Files
