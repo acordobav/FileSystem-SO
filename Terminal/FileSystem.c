@@ -254,15 +254,13 @@ void regexTerminal(int REG_KEY)
     puts("close..");
     break;
   case 13:
-    puts("13");
+    puts("13"); // R_LS
     break;
   case 14:
-    puts("14");
+    puts("14"); // R_LS_TIME
     break;
   case 15:
     showVisualicer();
-  case 16:
-    puts("16");
     break;
   default:
     break;
