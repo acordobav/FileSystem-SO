@@ -34,10 +34,12 @@ char *directoryName = "";
 char *new_ffName;
 
 char text_terminal[70];
+char text_terminal_output[255];
 char aux_text_terminal[70];
 
 bool ERROR_TERMINAL = false;
 bool REDRAW_IS_READY = false;
+bool TERMINAL_OUTPUT = false;
 
 regex_t regex;
 ALLEGRO_FONT *font;
@@ -85,6 +87,8 @@ char *splitRegex(int index)
 
 void regexTerminal(int REG_KEY)
 {
+  TERMINAL_OUTPUT = false;
+  strcpy(text_terminal_output, "");
   switch (REG_KEY)
   {
   case 1:
@@ -158,7 +162,7 @@ void regexTerminal(int REG_KEY)
     {
       puts("Archivo no encontrado");
     }
-    
+
     break;
   case 6:
     ffName = splitRegex(1);
@@ -187,7 +191,30 @@ void regexTerminal(int REG_KEY)
     puts("8");
     break;
   case 9:
-    puts("9");
+    ffName = splitRegex(1);
+    printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
+    Node *N_FD = searchElement(currentFolder, ffName);
+    FileData *FD = getFileData(N_FD);
+
+    strcat(text_terminal_output, "File Name: ");
+    strcat(text_terminal_output, ffName);
+    strcat(text_terminal_output, "\n\n\n");
+    strcat(text_terminal_output, "Owner: ");
+    strcat(text_terminal_output, FD->owner);
+    strcat(text_terminal_output, "\n\n\n");
+    strcat(text_terminal_output, "Created: ");
+    strcat(text_terminal_output, FD->created);
+    strcat(text_terminal_output, "\n\n");
+    strcat(text_terminal_output, "Last Modified: ");
+    strcat(text_terminal_output, FD->lastModified);
+    strcat(text_terminal_output, "\n\n");
+    strcat(text_terminal_output, "Size: ");
+    char snum[25];
+    sprintf(snum, "%d", FD->size);
+    strcat(text_terminal_output, snum);
+
+    TERMINAL_OUTPUT = true;
+
     break;
   case 10:
     puts("10");
@@ -523,6 +550,11 @@ int main(int argc, char *argv[])
 
       al_draw_text(font, al_map_rgb(255, 255, 220), 20, 10, ALLEGRO_ALIGN_LEFT, "~");
       al_draw_text(font, al_map_rgb(255, 255, 220), 30, 7, ALLEGRO_ALIGN_LEFT, directoryName);
+
+      if (TERMINAL_OUTPUT)
+      {
+        al_draw_multiline_text(font, al_map_rgb(0, 206, 80), 30, 70, SCREEN_W - 50, ALLEGRO_ALIGN_LEFT, 0, text_terminal_output);
+      }
 
       if (ERROR_TERMINAL)
       {
