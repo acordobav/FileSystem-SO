@@ -245,20 +245,24 @@ int renameElement(void *ref, char *oldName, char *newName)
  * ref: nodo raiz en el cual sera insertado el elemento
  * name: nombre del archivo
  * owner: nombre del dueno
+ * return: puntero a nuevo elemento
+ *         NULL -> archivo ya existe
 **/
 void *touch(void *ref, char *name, char *owner)
 {
     Node *root = (Node *)ref;
+    Node *temp = searchElement(root, name);
+    if(temp == NULL) {
+        // Creacion del nuevo nodo
+        FileData *filedata = createFileData(name, 0, owner);
+        Node *newNode = createNode(filedata);
 
-    // Creacion del nuevo nodo
-    FileData *filedata = createFileData(name, 0, owner);
-    Node *newNode = createNode(filedata);
-
-    // Insertar en el arbol
-    insertNode(root, newNode);
-    updateTree();
-
-    return newNode;
+        // Insertar en el arbol
+        insertNode(root, newNode);
+        updateTree();
+        return newNode;
+    } else 
+        return NULL;
 }
 
 /**
@@ -407,6 +411,7 @@ int assignBlocks(Node *node, int blockNum)
 int writeFile(void *element, char *data)
 {
     Node *node = (Node *)element;
+    printf("Obtenido: %s %d\n", node->filedata->name, node->filedata->isDirectory);
     if (!node->filedata->isDirectory)
     {
         int length = strlen(data);
@@ -443,6 +448,7 @@ int writeFile(void *element, char *data)
         updateLastModified(node->filedata); // Actualizacion fecha modificacion
         changeSize(node->filedata, length); // Actualizacion tamano del archivo
         updateTree();
+        return 0;
     }
     // Se trata de un directorio
     return 1;
