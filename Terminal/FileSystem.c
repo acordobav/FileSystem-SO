@@ -240,13 +240,20 @@ void regexTerminal(int REG_KEY)
     ffName = splitRegex(1);
     printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
     SearchedNode = searchElement(currentFolder, ffName);
-    data_msg = readFile(SearchedNode);
+    if (SearchedNode != NULL)
+    {
+      data_msg = readFile(SearchedNode);
 
-    strcat(text_terminal_output, "File Name: ");
-    strcat(text_terminal_output, ffName);
-    strcat(text_terminal_output, "\n\n\n");
-    strcat(text_terminal_output, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n");
-    strcat(text_terminal_output, data_msg);
+      strcat(text_terminal_output, "File Name: ");
+      strcat(text_terminal_output, ffName);
+      strcat(text_terminal_output, "\n\n\n");
+      strcat(text_terminal_output, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n");
+      strcat(text_terminal_output, data_msg);
+    }
+    else
+    {
+      strcat(text_terminal_output, "Error: elemento no encontrado.!");
+    }
 
     TERMINAL_OUTPUT = true;
     break;
@@ -270,15 +277,15 @@ void regexTerminal(int REG_KEY)
 void write_File(char text[70])
 {
   printf("--> %s\n", ffName);
-  char *chopped_text = text + 2;
 
-  printf("text_terminal: %s\n", chopped_text);
-
-  SearchedNode = searchElement(currentFolder, ffName);
+  SearchedNode = search(currentFolder, ffName);
 
   data_msg = readFile(SearchedNode);
 
   char msg[255] = "\n\n";
+
+  char *chopped_text = text + 2;
+  printf("text_terminal: %s\n", chopped_text);
 
   strcat(msg, chopped_text);
 
@@ -551,9 +558,9 @@ int main(int argc, char *argv[])
   currentFolder = tree->root;
   directoryName = currentFolder->filedata->name;
 
-/*   Node *file1 = touch(currentFolder, "w.w", SystemOwner);
+  Node *file1 = touch(currentFolder, "w.w", SystemOwner);
   char *msg = "Hola mundo";
-  writeFile(file1, msg); */
+  writeFile(file1, msg);
 
   al_init();
   if (!al_install_keyboard())
