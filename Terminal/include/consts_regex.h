@@ -10,7 +10,7 @@ static const char *__r_mv_rename_folder = "mv([[:space:]]+)([[:alnum:]]+)([[:spa
 // static const char *__r_mv_rename_folder = "mv([[:space:]]+)((([[:alnum:]]+)/([[:alpha:]]+))+)([[:space:]]+)((([[:alnum:]]+)/([[:alpha:]]+))+)$";
 
 // File
-static const char *__r_rm_unlink = "(rm|unlink)([[:space:]]+)([[:alnum:]]*)$";
+static const char *__r_rm_unlink = "rm|unlink([[:space:]]+)([[:alnum:]]*).([[:alpha:]]+)$";
 static const char *__r_mv_file = "mv([[:space:]]+)([[:alnum:]]+).([[:alpha:]]+)([[:space:]]+)([[:alnum:]]+).([[:alpha:]]+)$";
 static const char *__r_touch = "touch([[:space:]]+)([[:alnum:]]+).([[:alpha:]]+)$";
 static const char *__r_cat = "cat([[:space:]]+)([[:alnum:]]+).([[:alpha:]]+)$";

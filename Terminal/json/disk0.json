@@ -1,1 +1,43 @@
-{"tree":{"root":{"filedata":{"name":"root","isDirectory":1,"owner":"system","created":"Mon Dec 14 21:12:27 2020\n","lastModified":"Mon Dec 14 21:12:27 2020\n","size":0,"blocks":[]},"kid":{"filedata":{"name":"f1","isDirectory":1,"owner":"jk","created":"Mon Dec 14 21:12:30 2020\n","lastModified":"Mon Dec 14 21:12:30 2020\n","size":0,"blocks":[]},"kid":{"filedata":{"name":"f2","isDirectory":1,"owner":"jk","created":"Mon Dec 14 21:12:41 2020\n","lastModified":"Mon Dec 14 21:12:41 2020\n","size":0,"blocks":[]},"kid":{"filedata":{"name":"f3","isDirectory":1,"owner":"jk","created":"Mon Dec 14 21:12:47 2020\n","lastModified":"Mon Dec 14 21:12:47 2020\n","size":0,"blocks":[]},"kid":null,"brother":null},"brother":null},"brother":null},"brother":null},"blocksize":32,"blocks":10000}}
+{
+    "tree": {
+        "root": {
+            "filedata": {
+                "name": "root",
+                "isDirectory": 1,
+                "owner": "system",
+                "created": "Tue Dec 15 00:39:37 2020\n",
+                "lastModified": "Tue Dec 15 00:39:37 2020\n",
+                "size": 0,
+                "blocks": []
+            },
+            "kid": {
+                "filedata": {
+                    "name": "folder1",
+                    "isDirectory": 1,
+                    "owner": "jk",
+                    "created": "Tue Dec 15 00:40:05 2020\n",
+                    "lastModified": "Tue Dec 15 00:40:05 2020\n",
+                    "size": 0,
+                    "blocks": []
+                },
+                "kid": {
+                    "filedata": {
+                        "name": "file.pdf",
+                        "isDirectory": 0,
+                        "owner": "jk",
+                        "created": "Tue Dec 15 00:40:24 2020\n",
+                        "lastModified": "Tue Dec 15 00:40:48 2020\n",
+                        "size": 0,
+                        "blocks": []
+                    },
+                    "kid": null,
+                    "brother": null
+                },
+                "brother": null
+            },
+            "brother": null
+        },
+        "blocksize": 32,
+        "blocks": 10000
+    }
+}

@@ -25,11 +25,13 @@ char SystemOwner[20] = "system";
 Node *currentFolder;
 Node *previousFolder;
 
+int rne;
 char *ffName;
 int Shift = 0;
 int REG_KEY = 0;
 typedef int code;
 char *directoryName = "";
+char *new_ffName;
 
 char text_terminal[70];
 char aux_text_terminal[70];
@@ -127,10 +129,10 @@ void regexTerminal(int REG_KEY)
   case 4:
     ffName = splitRegex(1);
     strcpy(text_terminal, aux_text_terminal);
-    char *new_ffName = splitRegex(2);
-    printf("rename > %s -> %s\n", ffName, new_ffName);
+    new_ffName = splitRegex(2);
+    printf("rename FOLDER> %s -> %s\n", ffName, new_ffName);
 
-    int rne = renameElement(currentFolder, ffName, new_ffName);
+    rne = renameElement(currentFolder, ffName, new_ffName);
     if (rne == 0)
     {
       puts("Exito");
@@ -141,10 +143,38 @@ void regexTerminal(int REG_KEY)
     }
     break;
   case 5:
-    puts("5");
+    ffName = splitRegex(1);
+    printf("remove file--> currentFolder : %s \t ffName : %s\n", currentFolder->filedata->name, ffName);
+    int rm_ = rm(currentFolder, ffName);
+    if (rm_ == 0)
+    {
+      puts("OK");
+    }
+    else if (rm_ == 1)
+    {
+      puts("Error, es un folder");
+    }
+    else
+    {
+      puts("Archivo no encontrado");
+    }
+    
     break;
   case 6:
-    puts("6");
+    ffName = splitRegex(1);
+    strcpy(text_terminal, aux_text_terminal);
+    new_ffName = splitRegex(2);
+    printf("rename FILE > %s -> %s\n", ffName, new_ffName);
+
+    rne = renameElement(currentFolder, ffName, new_ffName);
+    if (rne == 0)
+    {
+      puts("Exito");
+    }
+    else
+    {
+      puts("error");
+    }
     break;
   case 7:
     ffName = splitRegex(1);
@@ -241,29 +271,29 @@ void validateInput()
 
   ERROR_TERMINAL = false;
 
-  if (!R_MKDIR)
+  if (!R_MKDIR) // crear
     REG_KEY = 1;
-  else if (!R_RMDIR)
+  else if (!R_RMDIR) // eliminar
     REG_KEY = 2;
-  else if (!R_CD)
+  else if (!R_CD) // desplazarse
     REG_KEY = 3;
-  else if (!R_MV_RENAME_FOLDER)
+  else if (!R_MV_RENAME_FOLDER) // renombrar
     REG_KEY = 4;
-  else if (!R_RM_UNLINK)
+  else if (!R_RM_UNLINK) // eliminar
     REG_KEY = 5;
-  else if (!R_MV_FILE)
+  else if (!R_MV_FILE) // renombrar
     REG_KEY = 6;
-  else if (!R_TOUCH)
+  else if (!R_TOUCH) // crear
     REG_KEY = 7;
-  else if (!R_CAT)
+  else if (!R_CAT) // abrir
     REG_KEY = 8;
-  else if (!R_GET)
+  else if (!R_GET) // obtener atributos
     REG_KEY = 9;
-  else if (!R_CAT_WRITE)
+  else if (!R_CAT_WRITE) // escribir
     REG_KEY = 10;
-  else if (!R_LESS)
+  else if (!R_LESS) // leer
     REG_KEY = 11;
-  else if (!R_CLOSE)
+  else if (!R_CLOSE) // cerrar
     REG_KEY = 12;
   else if (!R_LS)
     REG_KEY = 13;
@@ -271,6 +301,7 @@ void validateInput()
     REG_KEY = 14;
   else if (!R_VS)
     REG_KEY = 15;
+  // TODO establecer atributos.
   else
   {
     puts("---- ERROR ---");
@@ -424,6 +455,7 @@ int main(int argc, char *argv[])
   startFileSystem(32, 10000);
 
   currentFolder = tree->root;
+  directoryName = currentFolder->filedata->name;
 
   /*   Node *file1 = touch(currentFolder, "file1.txt", SystemOwner);
   char *msg = "";
@@ -489,6 +521,7 @@ int main(int argc, char *argv[])
     {
       al_draw_text(font, al_map_rgb(255, 255, 220), 30, 30, ALLEGRO_ALIGN_LEFT, text_terminal);
 
+      al_draw_text(font, al_map_rgb(255, 255, 220), 20, 10, ALLEGRO_ALIGN_LEFT, "~");
       al_draw_text(font, al_map_rgb(255, 255, 220), 30, 7, ALLEGRO_ALIGN_LEFT, directoryName);
 
       if (ERROR_TERMINAL)
