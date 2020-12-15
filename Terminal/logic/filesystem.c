@@ -85,22 +85,6 @@ FileData *getFileData(void *ref)
 }
 
 /**
- * Funcion para crear un nuevo directorio
- * ref: Puntero de referencia de la raiz del nuevo directorio
- * dirname: nombre del directorio
- * owner: nombre del dueno del directorio
-**/
-int mkdir(void *ref, char *dirname, char *owner)
-{
-    Node *root = (Node *)ref;
-    FileData *filedata = createFileData(dirname, 1, owner);
-    Node *newNode = createNode(filedata);
-    insertNode(root, newNode);
-    updateTree();
-    return 0;
-}
-
-/**
  * Funcion para buscar un elemento utilizando un nodo de referencia,
  * busca en un nivel mas abajo de la referencia
  * root: nodo de referencia
@@ -203,6 +187,32 @@ void *search(void *ref, char *route)
     // Archivo/directorio encontrado
     free(sroute);
     return current;
+}
+
+/**
+ * Funcion para crear un nuevo directorio
+ * ref: Puntero de referencia de la raiz del nuevo directorio
+ * dirname: nombre del directorio
+ * owner: nombre del dueno del directorio
+ * return : 0: Exito | -1: Error
+**/
+int mkdir(void *ref, char *dirname, char *owner)
+{
+    Node *root = (Node *)ref;
+    Node *temp = searchElement(root, dirname);
+
+    if (temp == NULL)
+    {
+        FileData *filedata = createFileData(dirname, 1, owner);
+        Node *newNode = createNode(filedata);
+        insertNode(root, newNode);
+        updateTree();
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 /**
@@ -495,9 +505,20 @@ void modifySize(void *ref, int newSize)
 
 void showVisualicer()
 {
-    if (system("google-chrome ../../Visualization/view.html &") == 0) { }
-    else if (system("firefox ../../Visualization/view.html &") == 0) { }
-    else if (system("chromium-browser ../../Visualization/view.html &") == 0) { }
-    else if (system("opera ../../Visualization/view.html &") == 0) { }
-    else { printf("Please, open view.html directly.!"); }
+    if (system("google-chrome ../../Visualization/view.html &") == 0)
+    {
+    }
+    else if (system("firefox ../../Visualization/view.html &") == 0)
+    {
+    }
+    else if (system("chromium-browser ../../Visualization/view.html &") == 0)
+    {
+    }
+    else if (system("opera ../../Visualization/view.html &") == 0)
+    {
+    }
+    else
+    {
+        printf("Please, open view.html directly.!");
+    }
 }

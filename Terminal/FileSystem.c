@@ -23,8 +23,8 @@ const int SCREEN_H = 588;
 
 char SystemOwner[20] = "system";
 Node *currentFolder;
+Node *previousFolder;
 
-/* char str[]; */
 char *ffName;
 int Shift = 0;
 int REG_KEY = 0;
@@ -91,7 +91,35 @@ void regexTerminal(int REG_KEY)
     rmdir_(currentFolder, ffName);
     break;
   case 3:
-    /* code */
+    ffName = splitRegex(1);
+    printf("--> ffName : >%s< \n", ffName);
+
+    int r = strcmp(ffName, "..");
+    printf("--> r : >%d< \n", r);
+
+    if (r == 0 && previousFolder != NULL)
+    {
+      currentFolder = previousFolder;
+      printf("--> currentFolder : %s \n", currentFolder->filedata->name);
+    }
+    else
+    {
+      void *ref = search(currentFolder, ffName);
+      Node *temp = (Node *)ref;
+      if (temp != NULL)
+      {
+        previousFolder = currentFolder;
+        printf("--> previousFolder : %s \n", previousFolder->filedata->name);
+
+        currentFolder = temp;
+        printf("--> currentFolder : %s \n", currentFolder->filedata->name);
+      }
+      else
+      {
+        puts("Error..........");
+      }
+    }
+
     break;
   case 4:
     /* code */
@@ -149,8 +177,8 @@ void validateInput()
   int r_rmdir = regcomp(&regex, __r_rmdir, REG_EXTENDED);
   int R_RMDIR = regexec(&regex, text_terminal, 0, NULL, 0);
 
-  int r_mv_folder = regcomp(&regex, __r_mv_folder, REG_EXTENDED);
-  int R_MV_FOLDER = regexec(&regex, text_terminal, 0, NULL, 0);
+  int r_cd = regcomp(&regex, __r_cd, REG_EXTENDED);
+  int R_CD = regexec(&regex, text_terminal, 0, NULL, 0);
 
   int r_mv_rename_folder = regcomp(&regex, __r_mv_rename_folder, REG_EXTENDED);
   int R_MV_RENAME_FOLDER = regexec(&regex, text_terminal, 0, NULL, 0);
@@ -190,10 +218,7 @@ void validateInput()
   int r_vs = regcomp(&regex, __r_vs, REG_EXTENDED);
   int R_VS = regexec(&regex, text_terminal, 0, NULL, 0);
 
-  //3. Free it
-  // regfree(&regex);
-
-  if (!r_close && !r_mkdir && !r_rmdir && !r_mv_folder && !r_mv_rename_folder && !r_rm_unlink && !r_mv_file && !r_touch && !r_cat && !r_get && !r_cat_write && !r_less && !r_close && !r_ls && !r_ls_time && !r_vs)
+  if (!r_close && !r_mkdir && !r_rmdir && !r_cd && !r_mv_rename_folder && !r_rm_unlink && !r_mv_file && !r_touch && !r_cat && !r_get && !r_cat_write && !r_less && !r_close && !r_ls && !r_ls_time && !r_vs)
     puts("");
   else
     puts("Compilation error.");
@@ -204,7 +229,7 @@ void validateInput()
     REG_KEY = 1;
   else if (!R_RMDIR)
     REG_KEY = 2;
-  else if (!R_MV_FOLDER)
+  else if (!R_CD)
     REG_KEY = 3;
   else if (!R_MV_RENAME_FOLDER)
     REG_KEY = 4;
@@ -461,13 +486,19 @@ int main(int argc, char *argv[])
     code = HandleEvent(ev);
   }
 
+  // Reset Resources
   al_clear_to_color(BLACK);
   al_flip_display();
 
+  // Free Resource Inteface
   al_destroy_bitmap(TOP_img);
   al_destroy_bitmap(TERMINAL_img);
   al_destroy_timer(timer);
   al_destroy_display(display);
   al_destroy_event_queue(event_queue);
+
+  //3. Free REGEX
+  regfree(&regex);
+
   return code;
 }
