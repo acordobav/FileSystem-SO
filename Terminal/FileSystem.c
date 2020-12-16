@@ -46,6 +46,7 @@ char Error_msg[255];
 char text_terminal_output[255];
 char text_terminal[_MAX_INPUT];
 char SystemOwner[20] = "system";
+char Block_Size_Option[1] = "0";
 char aux_text_terminal[_MAX_INPUT];
 
 bool Is_WRITING = false;
@@ -336,7 +337,9 @@ void regexTerminal(int REG_KEY)
       {
         strcat(text_terminal, data_msg);
       }
-    }else{
+    }
+    else
+    {
       puts("accion 340");
     }
     break;
@@ -653,10 +656,28 @@ code HandleEvent(ALLEGRO_EVENT ev)
 int main(int argc, char *argv[])
 {
 
+  int block_size = -1;
   printf("Username: ");
   scanf("%s", SystemOwner);
 
-  startFileSystem(32, 10000);
+  while (block_size < 0)
+  {
+    printf("Block Size\n  1) 32\n  2) 64\n  3) 128\n: ");
+    scanf("%s", Block_Size_Option);
+
+    if (strcmp(Block_Size_Option, "1") == 0)
+      block_size = 32;
+    else if (strcmp(Block_Size_Option, "2") == 0)
+      block_size = 64;
+    else if (strcmp(Block_Size_Option, "3") == 0)
+      block_size = 128;
+    else
+      puts("\n\nInvalid Option.!\n\n");
+  }
+
+  printf("Block size: %d\n", block_size);
+
+  startFileSystem(block_size, 10000);
 
   currentFolder = tree->root;
   directoryName = currentFolder->filedata->name;
@@ -710,8 +731,7 @@ int main(int argc, char *argv[])
     if (RedrawIsReady() && al_is_event_queue_empty(event_queue))
     {
       // al_draw_text(font, al_map_rgb(255, 255, 220), 30, text_terminal_vertical, ALLEGRO_ALIGN_LEFT, text_terminal);
-      al_draw_multiline_text(font, al_map_rgb(255, 255, 220), 30, text_terminal_vertical, SCREEN_W - 50, ALLEGRO_ALIGN_LEFT,0, text_terminal);
-
+      al_draw_multiline_text(font, al_map_rgb(255, 255, 220), 30, text_terminal_vertical, SCREEN_W - 50, ALLEGRO_ALIGN_LEFT, 0, text_terminal);
 
       al_draw_text(font, al_map_rgb(255, 255, 220), 20, 10, ALLEGRO_ALIGN_LEFT, "~");
       al_draw_text(font, al_map_rgb(255, 255, 220), 30, 7, ALLEGRO_ALIGN_LEFT, directoryName);
