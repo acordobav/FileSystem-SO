@@ -16,5 +16,8 @@ all: buildApp
 buildApp: $(APP_NAME).c
 		gcc -I $(INCLUDE_DIR) $(APP_NAME).c $(JSON_FLAGS) -o $(BIND_DIR)/$(APP_NAME) $(P_THREAD) $(ALLEGRO_FLAGS)
 
+visualizer: visualizer.c
+		gcc visualizer.c -o $(BIND_DIR)/visualizer -lallegro -lallegro_dialog -lallegro_font -lallegro_image -lallegro_ttf -lallegro_primitives -lm -ljson-c
+
 clean:
 	rm $(BIND_DIR)/$(APP_NAME) && $(REMOVE_F) $(DISK_JSON) && $(REMOVE_F) $(DISK)
