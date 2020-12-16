@@ -7,18 +7,16 @@
     sudo apt-get install liballegro*5.2 liballegro*5-dev
     sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
 
-    sudo apt-get install python-tk
-
 ### Intrucctions (Interface)
     make
     /bin/.FileSystem
 
-### Terminal Operators
+# Commands (Example)
 ## Folder
     crear : mkdir dirname
     eliminar : rmdir dirname
-    desplazarse : mv old_dirname new_dirname
-    renombrar : mv source_dirname dest_dirname
+    desplazarse : cd dirname || cd ..
+    renombrar : mv old_dirname new_dirname
 
 ## Files
     crear : touch filename.txt
@@ -27,15 +25,17 @@
     cerrar : close
     leer : less filename.txt
     escribir : cat >> filename.txt
-    renombrar : mv source_file dest_file
+    renombrar : mv old_filename.txt new_filename.txt
     obtener atributos : get filename.txt
-    establecer atributos : set filename.txt -o owner -tm timeModification -dm dateModification -tc timeCreation -dc dateCreation -s currentSize
+    establecer atributos : modifySize filename.txt newSize
+                           renameElement old_filename.txt new_filename.txt
+                           modifyOwner filename.txt newOwner
 
 ## Other - Display
     listado default: ls | ls -a
     listado por tiempo de modificacion : ls -t
 
-### FileSystem Functions
+# FileSystem Functions
 ## Iniciar FileSystem
     startFileSystem
 

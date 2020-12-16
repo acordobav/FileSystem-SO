@@ -21,30 +21,35 @@ const float FPS = 30;
 const int SCREEN_W = 608;
 const int SCREEN_H = 588;
 
-char SystemOwner[20] = "system";
+Node *SearchedNode;
 Node *currentFolder;
 Node *previousFolder;
-Node *SearchedNode;
+
+typedef int code;
 
 int rne;
-char *data_msg;
-char *ffName;
+int flag = -1;
 int Shift = 0;
+int _exit_ = 0;
 int REG_KEY = 0;
-typedef int code;
-char *directoryName = "";
-char *new_ffName;
-
-char text_terminal[70];
 int text_terminal_vertical = 30;
 
-char text_terminal_output[255];
-char aux_text_terminal[70];
+char *ffName;
+char *data_msg;
+char *new_ffName;
+char *directoryName = "";
 
+char Error_msg[255];
+char text_terminal[70];
+char aux_text_terminal[70];
+char text_terminal_output[255];
+char SystemOwner[20] = "system";
+
+bool Is_WRITING = false;
+bool LS_TERMINAL = false;
 bool ERROR_TERMINAL = false;
 bool REDRAW_IS_READY = false;
 bool TERMINAL_OUTPUT = false;
-bool Is_WRITING = false;
 
 regex_t regex;
 ALLEGRO_FONT *font;
@@ -90,21 +95,86 @@ char *splitRegex(int index)
   return token;
 }
 
+void ls_(int flag)
+{
+  int elem;
+  FileData **fileList = filedataList(currentFolder, flag, &elem);
+
+  int i;
+  int v_line = 70;
+
+  for (i = 0; i < elem; i++)
+  {
+    printf("%d - Name: %s, Date: %s\n", fileList[i]->isDirectory, fileList[i]->name, fileList[i]->lastModified);
+    if (fileList[i]->isDirectory == 1) // Folders
+    {
+      al_draw_text(font, al_map_rgb(5, 150, 220), 30, v_line, ALLEGRO_ALIGN_LEFT, fileList[i]->name);
+    }
+    else // Files
+    {
+      al_draw_text(font, al_map_rgb(220, 140, 245), 30, v_line, ALLEGRO_ALIGN_LEFT, fileList[i]->name);
+    }
+    v_line = v_line + 15;
+  }
+
+  free(fileList);
+}
+
 void regexTerminal(int REG_KEY)
 {
+  LS_TERMINAL = false;
+  ERROR_TERMINAL = false;
   TERMINAL_OUTPUT = false;
+
   strcpy(text_terminal_output, "");
   switch (REG_KEY)
   {
+  case 0:
+    puts("0");
+    _exit_ = 1;
+    break;
   case 1:
     ffName = splitRegex(1);
     printf("--> currentFolder : %s \t ffName : %s \t SystemOwner : %s\n", currentFolder->filedata->name, ffName, SystemOwner);
-    mkdir(currentFolder, ffName, SystemOwner);
+    int mkdir_result = mkdir(currentFolder, ffName, SystemOwner);
+    printf("Result: %d\n", mkdir_result);
+    if (mkdir_result == -1)
+    {
+      strcpy(Error_msg, "mkdir: cannot create directory '");
+      strcat(Error_msg, ffName);
+      strcat(Error_msg, "': File exists");
+      ERROR_TERMINAL = true;
+    }
     break;
   case 2:
+    puts("2");
     ffName = splitRegex(1);
     printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
-    rmdir_(currentFolder, ffName);
+    int rmdir_result = rmdir_(currentFolder, ffName);
+    printf("Result: %d\n", rmdir_result);
+    ERROR_TERMINAL = true;
+
+    if (rmdir_result == 1)
+    {
+      strcpy(Error_msg, "Error: cannot remove directory, please try again.!");
+    }
+    else if (rmdir_result == 2)
+    {
+      strcpy(Error_msg, "rmdir: failed to remove '");
+      strcat(Error_msg, ffName);
+      strcat(Error_msg, "': Not a directory");
+    }
+    else if (rmdir_result == 3)
+    {
+      strcpy(Error_msg, "rmdir: failed to remove '");
+      strcat(Error_msg, ffName);
+      strcat(Error_msg, "': No such directory");
+    }
+    else
+    {
+      ERROR_TERMINAL = false;
+    }
+
     break;
   case 3:
     ffName = splitRegex(1);
@@ -115,7 +185,6 @@ void regexTerminal(int REG_KEY)
       directoryName = "";
       currentFolder = previousFolder;
       directoryName = currentFolder->filedata->name;
-      printf("--> currentFolder : %s \n", currentFolder->filedata->name);
     }
     else
     {
@@ -127,11 +196,13 @@ void regexTerminal(int REG_KEY)
         previousFolder = currentFolder;
         currentFolder = temp;
         directoryName = currentFolder->filedata->name;
-        printf("--> currentFolder : %s \n", currentFolder->filedata->name);
       }
       else
       {
-        puts("Error..........");
+        ERROR_TERMINAL = true;
+        strcpy(Error_msg, "bash: cd: ");
+        strcat(Error_msg, ffName);
+        strcat(Error_msg, ": No such directory");
       }
     }
     break;
@@ -262,9 +333,14 @@ void regexTerminal(int REG_KEY)
     break;
   case 13:
     puts("13"); // R_LS
+    flag = 0;
+    LS_TERMINAL = true;
     break;
   case 14:
     puts("14"); // R_LS_TIME
+    flag = 1;
+    LS_TERMINAL = true;
+
     break;
   case 15:
     showVisualicer();
@@ -362,14 +438,19 @@ void validateInput()
   int r_vs = regcomp(&regex, __r_vs, REG_EXTENDED);
   int R_VS = regexec(&regex, text_terminal, 0, NULL, 0);
 
-  if (!r_close && !r_mkdir && !r_rmdir && !r_cd && !r_mv_rename_folder && !r_rm_unlink && !r_mv_file && !r_touch && !r_cat && !r_get && !r_cat_write && !r_less && !r_close && !r_ls && !r_ls_time && !r_vs)
-    puts("");
+  int r_exit = regcomp(&regex, __r_exit, REG_EXTENDED);
+  int R_EXIT = regexec(&regex, text_terminal, 0, NULL, 0);
+
+  if (!r_close && !r_mkdir && !r_rmdir && !r_cd && !r_mv_rename_folder && !r_rm_unlink && !r_mv_file && !r_touch && !r_cat && !r_get && !r_cat_write && !r_less && !r_close && !r_ls && !r_ls_time && !r_vs && !r_exit)
+    puts(""); // OK Regex
   else
     puts("Compilation error.");
 
   ERROR_TERMINAL = false;
 
-  if (!R_MKDIR) // crear
+  if (!R_EXIT) // EXIT
+    REG_KEY = 0;
+  else if (!R_MKDIR) // crear
     REG_KEY = 1;
   else if (!R_RMDIR) // eliminar
     REG_KEY = 2;
@@ -402,11 +483,14 @@ void validateInput()
   // TODO establecer atributos.
   else
   {
-    puts("---- ERROR ---");
+    strcpy(Error_msg, "Command '");
+    strcat(Error_msg, text_terminal + 2);
+    strcat(Error_msg, "' not found.");
+    strcpy(text_terminal, "> ");
     ERROR_TERMINAL = true;
-    REG_KEY = 0;
+    REG_KEY = -1;
   }
-  if (REG_KEY != 0)
+  if (REG_KEY != -1)
   {
     regexTerminal(REG_KEY);
     strcpy(text_terminal, "> ");
@@ -415,6 +499,11 @@ void validateInput()
 
 void keyBoardController(ALLEGRO_EVENT_TYPE keyType, int keycode)
 {
+  TERMINAL_OUTPUT = false;
+  ERROR_TERMINAL = false;
+  LS_TERMINAL = false;
+
+
   if (keyType == ALLEGRO_EVENT_KEY_DOWN && (keycode == ALLEGRO_KEY_FULLSTOP || keycode == ALLEGRO_KEY_PAD_DELETE) && Shift == 100)
   {
     Shift = 0;
@@ -558,9 +647,11 @@ int main(int argc, char *argv[])
   currentFolder = tree->root;
   directoryName = currentFolder->filedata->name;
 
+  /*
   Node *file1 = touch(currentFolder, "w.w", SystemOwner);
   char *msg = "Hola mundo";
   writeFile(file1, msg);
+  */
 
   al_init();
   if (!al_install_keyboard())
@@ -601,7 +692,7 @@ int main(int argc, char *argv[])
   // Event loop
   int code = CODE_CONTINUE;
 
-  while (code == CODE_CONTINUE)
+  while (code == CODE_CONTINUE && _exit_ == 0)
   {
     al_clear_to_color(BLACK); // TODO: check if this line es necessary!! - showing directoryName
 
@@ -622,11 +713,11 @@ int main(int argc, char *argv[])
 
       if (ERROR_TERMINAL)
       {
-        al_draw_text(font, al_map_rgb(255, 0, 0), 30, 70, ALLEGRO_ALIGN_LEFT, "Error...");
+        al_draw_text(font, al_map_rgb(215, 35, 35), 30, 70, ALLEGRO_ALIGN_LEFT, Error_msg);
       }
-      else
+      if (LS_TERMINAL)
       {
-        /* TODO ; Call funtion by REG_KEY */
+        ls_(flag);
       }
 
       al_flip_display();

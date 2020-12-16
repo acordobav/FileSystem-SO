@@ -10,7 +10,7 @@ static const char *__r_mv_rename_folder = "mv([[:space:]]+)([[:alnum:]]+)([[:spa
 // static const char *__r_mv_rename_folder = "mv([[:space:]]+)((([[:alnum:]]+)/([[:alpha:]]+))+)([[:space:]]+)((([[:alnum:]]+)/([[:alpha:]]+))+)$";
 
 // File
-static const char *__r_rm_unlink = "rm|unlink([[:space:]]+)([[:alnum:]]*)\\.([[:alpha:]]+)$";
+static const char *__r_rm_unlink = "(rm|unlink)([[:space:]]+)([[:alnum:]]*)\\.([[:alpha:]]+)$";
 static const char *__r_mv_file = "mv([[:space:]]+)([[:alnum:]]+)\\.([[:alpha:]]+)([[:space:]]+)([[:alnum:]]+)\\.([[:alpha:]]+)$";
 static const char *__r_touch = "touch([[:space:]]+)([[:alnum:]]+)\\.([[:alpha:]]+)$";
 static const char *__r_cat = "cat([[:space:]]+)([[:alnum:]]+)\\.([[:alpha:]]+)$";
@@ -18,7 +18,7 @@ static const char *__r_get = "get([[:space:]]+)([[:alnum:]]+)\\.([[:alpha:]]+)$"
 static const char *__r_cat_write = "cat([[:space:]]+)>>([[:space:]]+)([[:alnum:]]+)\\.([[:alpha:]]+)$";
 static const char *__r_less = "less([[:space:]]+)([[:alnum:]]+)\\.([[:alpha:]]+)$";
 static const char *__r_vs = "vs -f([[:space:]]*)$";
-
+static const char *__r_exit = "([[:space:]]*)exit([[:space:]]*)$";
 
 //Other - Display
 static const char *__r_ls = "(ls|ls -a)$";
