@@ -24,13 +24,21 @@ const int SCREEN_H = 588;
 
 Node *SearchedNode;
 Node *currentFolder;
-Node *previousFolder;
 
+// A linked list node of directories
+struct node
+{
+  char *name;
+  struct node *next;
+};
+
+struct node *start = NULL;
 typedef int code;
 
 int rne;
 int flag = -1;
 int Shift = 0;
+int count = 0;
 int _exit_ = 0;
 int REG_KEY = 0;
 int text_terminal_vertical = 30;
@@ -69,6 +77,108 @@ ALLEGRO_DISPLAY *display;
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #define CODE_CONTINUE (MIN(EXIT_SUCCESS, EXIT_FAILURE) - 1)
+
+void print_list()
+{
+  struct node *temp;
+  temp = start;
+  puts("------------");
+  while (temp->next != NULL)
+  {
+    temp = temp->next;
+    printf("Name: %s\n", temp->name);
+  }
+  puts("------------\n");
+}
+
+int length_list()
+{
+  struct node *temp;
+  temp = start;
+  if (temp == NULL)
+  {
+    return 0;
+  }
+  int l = 1;
+  while (temp->next != NULL)
+  {
+    temp = temp->next;
+    l++;
+  }
+  return l;
+}
+
+char *get_last()
+{
+  struct node *temp;
+  temp = start;
+  puts(">>>>> ");
+  while (temp->next != NULL)
+  {
+    temp = temp->next;
+    printf("Name: %s\n", temp->name);
+  }
+  puts(">>>>> \n");
+  printf("<<<<<<<<- > Name: %s\n", temp->name);
+
+  return temp->name;
+}
+
+void insert_at_end(char name[255])
+{
+  struct node *t, *temp;
+
+  t = (struct node *)malloc(sizeof(struct node));
+  t->name = name;
+  count++;
+
+  if (start == NULL)
+  {
+    start = t;
+    start->next = NULL;
+    return;
+  }
+
+  temp = start;
+
+  while (temp->next != NULL)
+    temp = temp->next;
+
+  temp->next = t;
+  t->next = NULL;
+}
+
+void delete_from_end()
+{
+  struct node *t, *u;
+
+  if (start == NULL)
+  {
+    printf("Linked list is empty.\n");
+    return;
+  }
+
+  count--;
+
+  if (start->next == NULL)
+  {
+    free(start);
+    start = NULL;
+    printf("%s deleted\n", start->name);
+    return;
+  }
+
+  t = start;
+
+  while (t->next != NULL)
+  {
+    u = t;
+    t = t->next;
+  }
+
+  u->next = NULL;
+  free(t);
+}
 
 bool RedrawIsReady(void)
 {
@@ -183,11 +293,26 @@ void regexTerminal(int REG_KEY)
     ffName = splitRegex(1);
     int r = strcmp(ffName, "..");
 
-    if (r == 0 && previousFolder != NULL)
+    if (r == 0)
     {
-      directoryName = "";
-      currentFolder = previousFolder;
-      directoryName = currentFolder->filedata->name;
+      if (length_list() == 1)
+      {
+        currentFolder = tree->root;
+        directoryName = currentFolder->filedata->name;
+      }
+      else
+      {
+        delete_from_end();
+        directoryName = "";
+
+        void *ref = search(tree->root, get_last());
+        Node *temp = (Node *)ref;
+        if (temp != NULL)
+          currentFolder = temp;
+        else
+          currentFolder = tree->root;
+        directoryName = currentFolder->filedata->name;
+      }
     }
     else
     {
@@ -196,9 +321,9 @@ void regexTerminal(int REG_KEY)
       if (temp != NULL)
       {
         directoryName = "";
-        previousFolder = currentFolder;
         currentFolder = temp;
         directoryName = currentFolder->filedata->name;
+        insert_at_end(directoryName);
       }
       else
       {
@@ -656,6 +781,18 @@ code HandleEvent(ALLEGRO_EVENT ev)
 int main(int argc, char *argv[])
 {
 
+  /*   printf("Length : %d\n", length_list());
+  insert_at_end("jose");
+  printf("Length : %d\n", length_list());
+
+  insert_at_end("carlos");
+  printf("Length : %d\n", length_list());
+
+  print_list();
+
+  printf("Length : %d\n", length_list());
+
+  return 0; */
   int block_size = -1;
   printf("Username: ");
   scanf("%s", SystemOwner);
@@ -678,6 +815,7 @@ int main(int argc, char *argv[])
   printf("Block size: %d\n", block_size);
 
   startFileSystem(block_size, 10000);
+  insert_at_end("root");
 
   currentFolder = tree->root;
   directoryName = currentFolder->filedata->name;
@@ -768,8 +906,16 @@ int main(int argc, char *argv[])
   al_destroy_display(display);
   al_destroy_event_queue(event_queue);
 
-  //3. Free REGEX
+  // Free REGEX
   regfree(&regex);
+
+  // Free Pointer
+  free(start);
+  start = NULL;
+  free(SearchedNode);
+  SearchedNode = NULL;
+  free(currentFolder);
+  currentFolder = NULL;
 
   return code;
 }
