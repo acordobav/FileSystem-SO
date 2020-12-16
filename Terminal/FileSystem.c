@@ -1,4 +1,5 @@
 #define __USE_XOPEN 700
+#define _MAX_INPUT 1000
 #define _GNU_SOURCE
 
 #include <time.h>
@@ -35,15 +36,17 @@ int REG_KEY = 0;
 int text_terminal_vertical = 30;
 
 char *ffName;
+char ffName_10[255];
+
 char *data_msg;
 char *new_ffName;
 char *directoryName = "";
 
 char Error_msg[255];
-char text_terminal[70];
-char aux_text_terminal[70];
 char text_terminal_output[255];
+char text_terminal[_MAX_INPUT];
 char SystemOwner[20] = "system";
+char aux_text_terminal[_MAX_INPUT];
 
 bool Is_WRITING = false;
 bool LS_TERMINAL = false;
@@ -105,7 +108,6 @@ void ls_(int flag)
 
   for (i = 0; i < elem; i++)
   {
-    printf("%d - Name: %s, Date: %s\n", fileList[i]->isDirectory, fileList[i]->name, fileList[i]->lastModified);
     if (fileList[i]->isDirectory == 1) // Folders
     {
       al_draw_text(font, al_map_rgb(5, 150, 220), 30, v_line, ALLEGRO_ALIGN_LEFT, fileList[i]->name);
@@ -265,16 +267,30 @@ void regexTerminal(int REG_KEY)
   case 8:
     ffName = splitRegex(1);
     printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
-    SearchedNode = searchElement(currentFolder, ffName);
-    data_msg = readFile(SearchedNode);
+    SearchedNode = search(currentFolder, ffName);
+    if (SearchedNode != NULL)
+    {
+      data_msg = readFile(SearchedNode);
+      printf("data_msg: %s\n", data_msg);
 
-    strcat(text_terminal_output, "File Name: ");
-    strcat(text_terminal_output, ffName);
-    strcat(text_terminal_output, "\n\n\n");
-    strcat(text_terminal_output, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n");
-    strcat(text_terminal_output, data_msg);
+      strcat(text_terminal_output, "File Name: ");
+      strcat(text_terminal_output, ffName);
+      strcat(text_terminal_output, "\n\n\n");
+      strcat(text_terminal_output, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n");
 
-    TERMINAL_OUTPUT = true;
+      if (data_msg != NULL)
+      {
+        strcat(text_terminal_output, data_msg);
+        free(data_msg);
+      }
+
+      TERMINAL_OUTPUT = true;
+    }
+    else
+    {
+      puts("ERROR--280");
+    }
+
     break;
   case 9:
     ffName = splitRegex(1);
@@ -306,27 +322,23 @@ void regexTerminal(int REG_KEY)
     Is_WRITING = true;
     text_terminal_vertical = 70;
     ffName = splitRegex(2);
-    break;
-  case 11:
-    ffName = splitRegex(1);
-    printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
-    SearchedNode = searchElement(currentFolder, ffName);
+    printf("10 --> %s\n", ffName);
+    strcpy(ffName_10, ffName);
+
+    SearchedNode = search(currentFolder, ffName);
+
     if (SearchedNode != NULL)
     {
       data_msg = readFile(SearchedNode);
 
-      strcat(text_terminal_output, "File Name: ");
-      strcat(text_terminal_output, ffName);
-      strcat(text_terminal_output, "\n\n\n");
-      strcat(text_terminal_output, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n");
-      strcat(text_terminal_output, data_msg);
+      strcpy(text_terminal, "> ");
+      if (data_msg != NULL)
+      {
+        strcat(text_terminal, data_msg);
+      }
+    }else{
+      puts("accion 340");
     }
-    else
-    {
-      strcat(text_terminal_output, "Error: elemento no encontrado.!");
-    }
-
-    TERMINAL_OUTPUT = true;
     break;
   case 12:
     puts("close..");
@@ -340,7 +352,6 @@ void regexTerminal(int REG_KEY)
     puts("14"); // R_LS_TIME
     flag = 1;
     LS_TERMINAL = true;
-
     break;
   case 15:
     showVisualicer();
@@ -350,38 +361,36 @@ void regexTerminal(int REG_KEY)
   }
 }
 
-void write_File(char text[70])
+void write_File(char *text)
 {
-  printf("--> %s\n", ffName);
+  printf("--> %s\n", ffName_10);
 
-  SearchedNode = search(currentFolder, ffName);
+  SearchedNode = search(currentFolder, ffName_10);
 
-  data_msg = readFile(SearchedNode);
-
-  char msg[255] = "\n\n";
-
-  char *chopped_text = text + 2;
-  printf("text_terminal: %s\n", chopped_text);
-
-  strcat(msg, chopped_text);
-
-  strcat(data_msg, msg);
-
-  int r = writeFile(SearchedNode, "text");
-
-  if (r == 0)
+  if (SearchedNode != NULL)
   {
-    puts("exito");
-  }
-  else if (r == 1)
-  {
-    puts("elemento es un directorio ");
+    char *chopped_text = text + 2;
+    printf("text_terminal: %s\n", chopped_text);
+
+    int r = writeFile(SearchedNode, chopped_text);
+
+    if (r == 0)
+    {
+      puts("exito");
+    }
+    else if (r == 1)
+    {
+      puts("elemento es un directorio ");
+    }
+    else
+    {
+      puts("no hay espacio suficiente");
+    }
   }
   else
   {
-    puts("no hay espacio suficiente");
+    puts("No hacer nada..");
   }
-
   Is_WRITING = false;
   TERMINAL_OUTPUT = false;
   text_terminal_vertical = 30;
@@ -471,7 +480,7 @@ void validateInput()
   else if (!R_CAT_WRITE) // escribir
     REG_KEY = 10;
   else if (!R_LESS) // leer
-    REG_KEY = 11;
+    REG_KEY = 8;
   else if (!R_CLOSE) // cerrar
     REG_KEY = 12;
   else if (!R_LS)
@@ -493,17 +502,15 @@ void validateInput()
   if (REG_KEY != -1)
   {
     regexTerminal(REG_KEY);
-    strcpy(text_terminal, "> ");
+    if (REG_KEY != 10)
+    {
+      strcpy(text_terminal, "> ");
+    }
   }
 }
 
 void keyBoardController(ALLEGRO_EVENT_TYPE keyType, int keycode)
 {
-  TERMINAL_OUTPUT = false;
-  ERROR_TERMINAL = false;
-  LS_TERMINAL = false;
-
-
   if (keyType == ALLEGRO_EVENT_KEY_DOWN && (keycode == ALLEGRO_KEY_FULLSTOP || keycode == ALLEGRO_KEY_PAD_DELETE) && Shift == 100)
   {
     Shift = 0;
@@ -512,6 +519,13 @@ void keyBoardController(ALLEGRO_EVENT_TYPE keyType, int keycode)
   else
   {
     Shift = 0;
+    if (keycode == ALLEGRO_KEY_ENTER || keycode == ALLEGRO_KEY_PAD_ENTER)
+    {
+      TERMINAL_OUTPUT = false;
+      ERROR_TERMINAL = false;
+      LS_TERMINAL = false;
+    }
+
     if (keycode == ALLEGRO_KEY_A)
       strcat(text_terminal, "a");
     else if (keycode == ALLEGRO_KEY_B)
@@ -603,6 +617,8 @@ void keyBoardController(ALLEGRO_EVENT_TYPE keyType, int keycode)
     else if (keycode == ALLEGRO_KEY_RSHIFT || keycode == ALLEGRO_KEY_LSHIFT)
       Shift = Shift + 100;
 
+    else if (keycode == ALLEGRO_KEY_BACKSLASH || keycode == ALLEGRO_KEY_BACKSLASH2)
+      strcat(text_terminal, "\n\n");
     // DELETE
     else if (keycode == ALLEGRO_KEY_BACKSPACE && strlen(text_terminal) > 2)
       text_terminal[strlen(text_terminal) - 1] = '\0';
@@ -625,8 +641,8 @@ code HandleEvent(ALLEGRO_EVENT ev)
   case ALLEGRO_EVENT_DISPLAY_CLOSE:
     return EXIT_SUCCESS;
   case ALLEGRO_EVENT_KEY_DOWN:
-    if (strlen(text_terminal) < 68)
-      keyBoardController(ev.type, ev.keyboard.keycode);
+    /* if (strlen(text_terminal) < 68) */
+    keyBoardController(ev.type, ev.keyboard.keycode);
     break;
   default:
     break;
@@ -637,8 +653,6 @@ code HandleEvent(ALLEGRO_EVENT ev)
 int main(int argc, char *argv[])
 {
 
-  // strcpy(text_terminal, "mv   f1   folder1");
-
   printf("Username: ");
   scanf("%s", SystemOwner);
 
@@ -646,12 +660,6 @@ int main(int argc, char *argv[])
 
   currentFolder = tree->root;
   directoryName = currentFolder->filedata->name;
-
-  /*
-  Node *file1 = touch(currentFolder, "w.w", SystemOwner);
-  char *msg = "Hola mundo";
-  writeFile(file1, msg);
-  */
 
   al_init();
   if (!al_install_keyboard())
@@ -701,7 +709,9 @@ int main(int argc, char *argv[])
 
     if (RedrawIsReady() && al_is_event_queue_empty(event_queue))
     {
-      al_draw_text(font, al_map_rgb(255, 255, 220), 30, text_terminal_vertical, ALLEGRO_ALIGN_LEFT, text_terminal);
+      // al_draw_text(font, al_map_rgb(255, 255, 220), 30, text_terminal_vertical, ALLEGRO_ALIGN_LEFT, text_terminal);
+      al_draw_multiline_text(font, al_map_rgb(255, 255, 220), 30, text_terminal_vertical, SCREEN_W - 50, ALLEGRO_ALIGN_LEFT,0, text_terminal);
+
 
       al_draw_text(font, al_map_rgb(255, 255, 220), 20, 10, ALLEGRO_ALIGN_LEFT, "~");
       al_draw_text(font, al_map_rgb(255, 255, 220), 30, 7, ALLEGRO_ALIGN_LEFT, directoryName);

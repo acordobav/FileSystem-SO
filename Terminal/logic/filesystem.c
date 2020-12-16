@@ -511,20 +511,5 @@ void modifySize(void *ref, int newSize)
 
 void showVisualicer()
 {
-    if (system("google-chrome ../../Visualization/view.html &") == 0)
-    {
-    }
-    else if (system("firefox ../../Visualization/view.html &") == 0)
-    {
-    }
-    else if (system("chromium-browser ../../Visualization/view.html &") == 0)
-    {
-    }
-    else if (system("opera ../../Visualization/view.html &") == 0)
-    {
-    }
-    else
-    {
-        printf("Please, open view.html directly.!");
-    }
+    system("./visualizer");
 }
