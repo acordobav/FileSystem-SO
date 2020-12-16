@@ -315,9 +315,9 @@ int rm(void *ref, char *name)
     if (node != NULL)
     {
         if (!node->filedata->isDirectory)
-        {
+        {   
             // Elemento es un archivo
-            deleteBlocks(node->filedata->blocks);
+            if(node->filedata->blocks != NULL) deleteBlocks(node->filedata->blocks);
             deleteNode(ref, node);
             updateTree();
             return 0;
