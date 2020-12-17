@@ -1,2 +1,3 @@
 Terminal/bin/*
-Terminal/disks/*
+Terminal/disks/disk0.json
+Terminal/disks/disk1
