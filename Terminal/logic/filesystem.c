@@ -387,7 +387,6 @@ int assignBlocks(Node *node, int blockNum)
         if (block == NULL)
         {
             // No hay espacio suficiente
-            deleteBlocks(block);
             return 2;
         }
         if (node->filedata->blocks != NULL)
