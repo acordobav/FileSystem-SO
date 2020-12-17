@@ -17,6 +17,8 @@ CC = gcc
 
 all: buildApp visualizer
 
+cc: clean buildApp visualizer
+
 buildApp: $(APP_NAME).c
 		$(CC) -I $(INCLUDE_DIR) $(APP_NAME).c $(JSON_FLAGS) -o $(BIND_DIR)/$(APP_NAME) $(P_THREAD) $(ALLEGRO_FLAGS)
 

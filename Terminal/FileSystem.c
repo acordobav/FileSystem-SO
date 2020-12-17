@@ -1,5 +1,6 @@
 #define __USE_XOPEN 700
 #define _MAX_INPUT 1000
+#define _MAX_L_CHAR 255
 #define _GNU_SOURCE
 
 #include <time.h>
@@ -22,42 +23,41 @@ const float FPS = 30;
 const int SCREEN_W = 608;
 const int SCREEN_H = 588;
 
-Node *SearchedNode;
+Node *searchedNode;
 Node *currentFolder;
 
-// A linked list node of directories
-struct node
+struct folder
 {
   Node *treeNode;
-  struct node *next;
+  struct folder *next;
 };
 
-struct node *start = NULL;
+struct folder *start = NULL;
 typedef int code;
+
+int _exit_ = 0;
+int _shift_ = 0;
+int _isWriting_ = 0;
 
 int rne;
 int flag = -1;
-int Shift = 0;
 int count = 0;
-int _exit_ = 0;
-int REG_KEY = 0;
-int text_terminal_vertical = 30;
+int regKey = 0;
+int ttVertical = 30;
 
 char *ffName;
-char ffName_10[255];
-
-char *data_msg;
-char *new_ffName;
+char *param2;
+char *nodeMsg;
 char *directoryName = "";
 
-char Error_msg[255];
-char block_input[_MAX_INPUT];
-char text_terminal_output[255];
-char text_terminal[_MAX_INPUT];
-char SystemOwner[20] = "system";
-char aux_text_terminal[_MAX_INPUT];
+char input[_MAX_INPUT];
+char errorMsg[_MAX_L_CHAR];
+char ttOutput[_MAX_L_CHAR];
+char textTerminal[_MAX_INPUT];
+char ffNameBackUp[_MAX_L_CHAR];
+char auxTextTerminal[_MAX_INPUT];
+char systemOwner[_MAX_L_CHAR] = "system";
 
-bool Is_WRITING = false;
 bool LS_TERMINAL = false;
 bool ERROR_TERMINAL = false;
 bool REDRAW_IS_READY = false;
@@ -78,9 +78,14 @@ ALLEGRO_DISPLAY *display;
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #define CODE_CONTINUE (MIN(EXIT_SUCCESS, EXIT_FAILURE) - 1)
 
+/**
+ * @brief  List's length
+ * @note   To Folder List (using by cd)
+ * @retval length
+ */
 int length_list()
 {
-  struct node *temp;
+  struct folder *temp;
   temp = start;
   if (temp == NULL)
     return 0;
@@ -94,9 +99,13 @@ int length_list()
   return l;
 }
 
+/**
+ * @brief  Last node of Folder List
+ * @retval Last node
+ */
 Node *get_last()
 {
-  struct node *temp;
+  struct folder *temp;
   temp = start;
   while (temp->next != NULL)
     temp = temp->next;
@@ -104,11 +113,17 @@ Node *get_last()
   return temp->treeNode;
 }
 
+/**
+ * @brief  Push new node to Folder List
+ * @note   LIFO
+ * @param  \*treeNode: new node
+ * @retval None
+ */
 void insert_at_end(Node *treeNode)
 {
-  struct node *t, *temp;
+  struct folder *t, *temp;
 
-  t = (struct node *)malloc(sizeof(struct node));
+  t = (struct folder *)malloc(sizeof(struct folder));
   t->treeNode = treeNode;
   count++;
 
@@ -128,9 +143,14 @@ void insert_at_end(Node *treeNode)
   t->next = NULL;
 }
 
+/**
+ * @brief  Remove last element of Folder List
+ * @note   LIFO
+ * @retval None
+ */
 void delete_from_end()
 {
-  struct node *t, *u;
+  struct folder *t, *u;
 
   if (start == NULL)
     return;
@@ -156,6 +176,11 @@ void delete_from_end()
   free(t);
 }
 
+/**
+ * @brief  Check if UI can refresh
+ * @note   Allegro
+ * @retval Refresh screen
+ */
 bool RedrawIsReady(void)
 {
   switch (REDRAW_IS_READY)
@@ -168,11 +193,17 @@ bool RedrawIsReady(void)
   }
 }
 
+/**
+ * @brief  Split string
+ * @note   Splitting textTerminal
+ * @param  \index: index to split array
+ * @retval Part of textTerminal
+ */
 char *splitRegex(int index)
 {
-  strcpy(aux_text_terminal, text_terminal);
+  strcpy(auxTextTerminal, textTerminal);
   char *token;
-  char *rest = text_terminal;
+  char *rest = textTerminal;
   int i = 0;
 
   while ((token = strtok_r(rest, " ", &rest)))
@@ -185,6 +216,11 @@ char *splitRegex(int index)
   return token;
 }
 
+/**
+ * @brief  Print folders and files on UI
+ * @param  \flag: by defaul or time
+ * @retval None
+ */
 void ls_(int flag)
 {
   int elem;
@@ -207,27 +243,33 @@ void ls_(int flag)
   free(fileList);
 }
 
-void regexTerminal(int REG_KEY)
+/**
+ * @brief  Executer of action -> FileSystem
+ * @note   Important: High
+ * @param  \regKey: Key to execute action
+ * @retval None
+ */
+void regexTerminal(int regKey)
 {
   LS_TERMINAL = false;
   ERROR_TERMINAL = false;
   TERMINAL_OUTPUT = false;
 
-  strcpy(text_terminal_output, "");
-  switch (REG_KEY)
+  strcpy(ttOutput, "");
+  switch (regKey)
   {
   case 0: // EXIT
     _exit_ = 1;
     break;
   case 1: // MKDIR
     ffName = splitRegex(1);
-    int mkdir_result = mkdir(currentFolder, ffName, SystemOwner);
+    int mkdir_result = mkdir(currentFolder, ffName, systemOwner);
     if (mkdir_result == -1)
     {
       ERROR_TERMINAL = true;
-      strcpy(Error_msg, "mkdir: cannot create directory '");
-      strcat(Error_msg, ffName);
-      strcat(Error_msg, "': File exists");
+      strcpy(errorMsg, "mkdir: cannot create directory '");
+      strcat(errorMsg, ffName);
+      strcat(errorMsg, "': File exists");
     }
     break;
   case 2: // RMDIR
@@ -236,19 +278,19 @@ void regexTerminal(int REG_KEY)
     ERROR_TERMINAL = true;
 
     if (rmdir_result == 1)
-      strcpy(Error_msg, "Error: cannot remove directory, please try again.!");
+      strcpy(errorMsg, "Error: cannot remove directory, please try again.!");
 
     else if (rmdir_result == 2)
     {
-      strcpy(Error_msg, "rmdir: failed to remove '");
-      strcat(Error_msg, ffName);
-      strcat(Error_msg, "': Not a directory");
+      strcpy(errorMsg, "rmdir: failed to remove '");
+      strcat(errorMsg, ffName);
+      strcat(errorMsg, "': Not a directory");
     }
     else if (rmdir_result == 3)
     {
-      strcpy(Error_msg, "rmdir: failed to remove '");
-      strcat(Error_msg, ffName);
-      strcat(Error_msg, "': No such directory");
+      strcpy(errorMsg, "rmdir: failed to remove '");
+      strcat(errorMsg, ffName);
+      strcat(errorMsg, "': No such directory");
     }
     else
       ERROR_TERMINAL = false;
@@ -288,23 +330,23 @@ void regexTerminal(int REG_KEY)
       else
       {
         ERROR_TERMINAL = true;
-        strcpy(Error_msg, "bash: cd: ");
-        strcat(Error_msg, ffName);
-        strcat(Error_msg, ": No such directory");
+        strcpy(errorMsg, "bash: cd: ");
+        strcat(errorMsg, ffName);
+        strcat(errorMsg, ": No such directory");
       }
     }
     break;
   case 4: // RM
     ffName = splitRegex(1);
-    strcpy(text_terminal, aux_text_terminal);
-    new_ffName = splitRegex(2);
-    rne = renameElement(currentFolder, ffName, new_ffName);
+    strcpy(textTerminal, auxTextTerminal);
+    param2 = splitRegex(2);
+    rne = renameElement(currentFolder, ffName, param2);
     if (rne != 0)
     {
       ERROR_TERMINAL = true;
-      strcpy(Error_msg, "mv: cannot stat '");
-      strcat(Error_msg, ffName);
-      strcat(Error_msg, "': No such file or directory");
+      strcpy(errorMsg, "mv: cannot stat '");
+      strcat(errorMsg, ffName);
+      strcat(errorMsg, "': No such file or directory");
     }
     break;
   case 5: //  RM
@@ -313,16 +355,16 @@ void regexTerminal(int REG_KEY)
     if (rm_RM == 1)
     {
       ERROR_TERMINAL = true;
-      strcpy(Error_msg, "rm: cannot remove '");
-      strcat(Error_msg, ffName);
-      strcat(Error_msg, "': Is a directory");
+      strcpy(errorMsg, "rm: cannot remove '");
+      strcat(errorMsg, ffName);
+      strcat(errorMsg, "': Is a directory");
     }
     else if (rm_RM == 2)
     {
       ERROR_TERMINAL = true;
-      strcpy(Error_msg, "rm: cannot remove '");
-      strcat(Error_msg, ffName);
-      strcat(Error_msg, "': No such file");
+      strcpy(errorMsg, "rm: cannot remove '");
+      strcat(errorMsg, ffName);
+      strcat(errorMsg, "': No such file");
     }
     break;
   case 55: // UNLINK
@@ -331,61 +373,61 @@ void regexTerminal(int REG_KEY)
     if (rm_UNLINK == 1)
     {
       ERROR_TERMINAL = true;
-      strcpy(Error_msg, "unlink: cannot unlink '");
-      strcat(Error_msg, ffName);
-      strcat(Error_msg, "': Is a directory");
+      strcpy(errorMsg, "unlink: cannot unlink '");
+      strcat(errorMsg, ffName);
+      strcat(errorMsg, "': Is a directory");
     }
     else if (rm_UNLINK == 2)
     {
       ERROR_TERMINAL = true;
-      strcpy(Error_msg, "unlink: cannot unlink '");
-      strcat(Error_msg, ffName);
-      strcat(Error_msg, "': No such file");
+      strcpy(errorMsg, "unlink: cannot unlink '");
+      strcat(errorMsg, ffName);
+      strcat(errorMsg, "': No such file");
     }
     break;
   case 6: // MV - file (Rename)
     ffName = splitRegex(1);
-    strcpy(text_terminal, aux_text_terminal);
-    new_ffName = splitRegex(2);
-    rne = renameElement(currentFolder, ffName, new_ffName);
+    strcpy(textTerminal, auxTextTerminal);
+    param2 = splitRegex(2);
+    rne = renameElement(currentFolder, ffName, param2);
     if (rne != 0)
     {
       ERROR_TERMINAL = true;
-      strcpy(Error_msg, "mv: cannot stat '");
-      strcat(Error_msg, ffName);
-      strcat(Error_msg, "': No such file or directory");
+      strcpy(errorMsg, "mv: cannot stat '");
+      strcat(errorMsg, ffName);
+      strcat(errorMsg, "': No such file or directory");
     }
     break;
   case 7: // TOUCH
     ffName = splitRegex(1);
-    Node *file1 = touch(currentFolder, ffName, SystemOwner);
+    Node *file1 = touch(currentFolder, ffName, systemOwner);
     if (file1 != NULL)
       writeFile(file1, "");
     break;
   case 8: // CAT
     ffName = splitRegex(1);
-    SearchedNode = search(currentFolder, ffName);
-    if (SearchedNode != NULL)
+    searchedNode = search(currentFolder, ffName);
+    if (searchedNode != NULL)
     {
-      if (SearchedNode->filedata->isDirectory == 1)
+      if (searchedNode->filedata->isDirectory == 1)
       {
         ERROR_TERMINAL = true;
-        strcpy(Error_msg, "cat or less: ");
-        strcat(Error_msg, ffName);
-        strcat(Error_msg, ": Is a directory");
+        strcpy(errorMsg, "cat or less: ");
+        strcat(errorMsg, ffName);
+        strcat(errorMsg, ": Is a directory");
       }
       else
       {
-        data_msg = readFile(SearchedNode);
-        strcat(text_terminal_output, "File Name: ");
-        strcat(text_terminal_output, ffName);
-        strcat(text_terminal_output, "\n\n\n");
-        strcat(text_terminal_output, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n");
+        nodeMsg = readFile(searchedNode);
+        strcat(ttOutput, "File Name: ");
+        strcat(ttOutput, ffName);
+        strcat(ttOutput, "\n\n\n");
+        strcat(ttOutput, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n");
 
-        if (data_msg != NULL)
+        if (nodeMsg != NULL)
         {
-          strcat(text_terminal_output, data_msg);
-          free(data_msg);
+          strcat(ttOutput, nodeMsg);
+          free(nodeMsg);
         }
         TERMINAL_OUTPUT = true;
       }
@@ -393,41 +435,41 @@ void regexTerminal(int REG_KEY)
     else
     {
       ERROR_TERMINAL = true;
-      strcpy(Error_msg, "cat or less: ");
-      strcat(Error_msg, ffName);
-      strcat(Error_msg, ": No such file or directory");
+      strcpy(errorMsg, "cat or less: ");
+      strcat(errorMsg, ffName);
+      strcat(errorMsg, ": No such file or directory");
     }
     break;
   case 9: // GET
     ffName = splitRegex(1);
-    SearchedNode = searchElement(currentFolder, ffName);
+    searchedNode = searchElement(currentFolder, ffName);
 
-    if (SearchedNode != NULL)
+    if (searchedNode != NULL)
     {
-      FileData *FD = getFileData(SearchedNode);
+      FileData *FD = getFileData(searchedNode);
 
       if (FD != NULL)
       {
         if (FD->isDirectory == 1)
-          strcat(text_terminal_output, "Folder Name: ");
+          strcat(ttOutput, "Folder Name: ");
         else
-          strcat(text_terminal_output, "File Name: ");
+          strcat(ttOutput, "File Name: ");
 
         char snum[25];
-        strcat(text_terminal_output, ffName);
-        strcat(text_terminal_output, "\n\n\n");
-        strcat(text_terminal_output, "Owner: ");
-        strcat(text_terminal_output, FD->owner);
-        strcat(text_terminal_output, "\n\n\n");
-        strcat(text_terminal_output, "Created: ");
-        strcat(text_terminal_output, FD->created);
-        strcat(text_terminal_output, "\n\n");
-        strcat(text_terminal_output, "Last Modified: ");
-        strcat(text_terminal_output, FD->lastModified);
-        strcat(text_terminal_output, "\n\n");
-        strcat(text_terminal_output, "Size: ");
+        strcat(ttOutput, ffName);
+        strcat(ttOutput, "\n\n\n");
+        strcat(ttOutput, "Owner: ");
+        strcat(ttOutput, FD->owner);
+        strcat(ttOutput, "\n\n\n");
+        strcat(ttOutput, "Created: ");
+        strcat(ttOutput, FD->created);
+        strcat(ttOutput, "\n\n");
+        strcat(ttOutput, "Last Modified: ");
+        strcat(ttOutput, FD->lastModified);
+        strcat(ttOutput, "\n\n");
+        strcat(ttOutput, "Size: ");
         sprintf(snum, "%d", FD->size);
-        strcat(text_terminal_output, snum);
+        strcat(ttOutput, snum);
 
         TERMINAL_OUTPUT = true;
       }
@@ -435,46 +477,49 @@ void regexTerminal(int REG_KEY)
     else
     {
       ERROR_TERMINAL = true;
-      strcpy(Error_msg, "get: ");
-      strcat(Error_msg, ffName);
-      strcat(Error_msg, ": No such file or directory");
+      strcpy(errorMsg, "get: ");
+      strcat(errorMsg, ffName);
+      strcat(errorMsg, ": No such file or directory");
     }
 
     break;
   case 10: // CAT >> (WRITE)
     ffName = splitRegex(2);
-    strcpy(ffName_10, ffName);
-    SearchedNode = search(currentFolder, ffName);
+    strcpy(ffNameBackUp, ffName);
+    searchedNode = search(currentFolder, ffName);
 
-    if (SearchedNode != NULL)
+    if (searchedNode != NULL)
     {
-      strcpy(text_terminal, "> ");
+      strcpy(textTerminal, "> ");
 
-      if (SearchedNode->filedata->isDirectory == 1)
+      if (searchedNode->filedata->isDirectory == 1)
       {
         ERROR_TERMINAL = true;
-        strcpy(Error_msg, "bash: ");
-        strcat(Error_msg, ffName);
-        strcat(Error_msg, ": Is a directory");
+        strcpy(errorMsg, "bash: ");
+        strcat(errorMsg, ffName);
+        strcat(errorMsg, ": Is a directory");
       }
       else
       {
-        Is_WRITING = true;
-        text_terminal_vertical = 70;
-        data_msg = readFile(SearchedNode);
+        _isWriting_ = 1;
+        ttVertical = 70;
+        nodeMsg = readFile(searchedNode);
 
-        if (data_msg != NULL)
-          strcat(text_terminal, data_msg);
+        if (nodeMsg != NULL)
+        {
+          strcat(textTerminal, nodeMsg);
+          free(nodeMsg);
+        }
       }
     }
     else
     {
-      Node *file1 = touch(currentFolder, ffName, SystemOwner);
+      Node *file1 = touch(currentFolder, ffName, systemOwner);
       if (file1 != NULL)
         writeFile(file1, "");
-      strcpy(text_terminal, "> ");
-      Is_WRITING = true;
-      text_terminal_vertical = 70;
+      strcpy(textTerminal, "> ");
+      _isWriting_ = 1;
+      ttVertical = 70;
     }
     break;
   case 13:
@@ -491,40 +536,40 @@ void regexTerminal(int REG_KEY)
 
   case 16: // set_owner
     ffName = splitRegex(1);
-    strcpy(text_terminal, aux_text_terminal);
+    strcpy(textTerminal, auxTextTerminal);
     char *flag = splitRegex(2);
-    strcpy(text_terminal, aux_text_terminal);
+    strcpy(textTerminal, auxTextTerminal);
     char *data = splitRegex(3);
 
-    SearchedNode = search(currentFolder, ffName);
+    searchedNode = search(currentFolder, ffName);
 
-    if (SearchedNode != NULL)
-      modifyOwner(SearchedNode, data);
+    if (searchedNode != NULL)
+      modifyOwner(searchedNode, data);
     else
     {
       ERROR_TERMINAL = true;
-      strcpy(Error_msg, "set: ");
-      strcat(Error_msg, ffName);
-      strcat(Error_msg, ": No such file or directory");
+      strcpy(errorMsg, "set: ");
+      strcat(errorMsg, ffName);
+      strcat(errorMsg, ": No such file or directory");
     }
     break;
   case 17: // set_SIZE
     ffName = splitRegex(1);
-    strcpy(text_terminal, aux_text_terminal);
+    strcpy(textTerminal, auxTextTerminal);
     char *flag_ = splitRegex(2);
-    strcpy(text_terminal, aux_text_terminal);
+    strcpy(textTerminal, auxTextTerminal);
     char *data_ = splitRegex(3);
 
-    SearchedNode = search(currentFolder, ffName);
+    searchedNode = search(currentFolder, ffName);
 
-    if (SearchedNode != NULL)
-      modifySize(SearchedNode, atoi(data_));
+    if (searchedNode != NULL)
+      modifySize(searchedNode, atoi(data_));
     else
     {
       ERROR_TERMINAL = true;
-      strcpy(Error_msg, "set: ");
-      strcat(Error_msg, ffName);
-      strcat(Error_msg, ": No such file or directory");
+      strcpy(errorMsg, "set: ");
+      strcat(errorMsg, ffName);
+      strcat(errorMsg, ": No such file or directory");
     }
 
     break;
@@ -533,158 +578,176 @@ void regexTerminal(int REG_KEY)
   }
 }
 
+/**
+ * @brief  Method to write text in files
+ * @param  \*text: Message to write in file
+ * @retval None
+ */
 void write_File(char *text)
 {
-  SearchedNode = search(currentFolder, ffName_10);
+  searchedNode = search(currentFolder, ffNameBackUp);
 
-  if (SearchedNode != NULL)
+  if (searchedNode != NULL)
   {
     char *chopped_text = text + 2;
-    writeFile(SearchedNode, chopped_text);
+    writeFile(searchedNode, chopped_text);
   }
   else
   {
     puts(">>> Error! Code:550");
   }
-  Is_WRITING = false;
+  _isWriting_ = 0;
   TERMINAL_OUTPUT = false;
-  text_terminal_vertical = 30;
-  strcpy(text_terminal, "> ");
+  ttVertical = 30;
+  strcpy(textTerminal, "> ");
 }
 
+/**
+ * @brief  Method to validate the input text (textTerminal)
+ * @note   > regexTerminal
+ * @note   Important: High
+ * @retval None
+ */
 void validateInput()
 {
   // Folder
   int r_mkdir = regcomp(&regex, __r_mkdir, REG_EXTENDED);
-  int R_MKDIR = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_MKDIR = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_rmdir = regcomp(&regex, __r_rmdir, REG_EXTENDED);
-  int R_RMDIR = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_RMDIR = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_cd = regcomp(&regex, __r_cd, REG_EXTENDED);
-  int R_CD = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_CD = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_mv_rename_folder = regcomp(&regex, __r_mv_rename_folder, REG_EXTENDED);
-  int R_MV_RENAME_FOLDER = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_MV_RENAME_FOLDER = regexec(&regex, textTerminal, 0, NULL, 0);
 
   // File
   int r_rm = regcomp(&regex, __r_rm, REG_EXTENDED);
-  int R_RM = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_RM = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_unlink = regcomp(&regex, __r_unlink, REG_EXTENDED);
-  int R_UNLINK = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_UNLINK = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_mv_file = regcomp(&regex, __r_mv_file, REG_EXTENDED);
-  int R_MV_FILE = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_MV_FILE = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_touch = regcomp(&regex, __r_touch, REG_EXTENDED);
-  int R_TOUCH = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_TOUCH = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_cat = regcomp(&regex, __r_cat, REG_EXTENDED);
-  int R_CAT = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_CAT = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_get = regcomp(&regex, __r_get, REG_EXTENDED);
-  int R_GET = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_GET = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_cat_write = regcomp(&regex, __r_cat_write, REG_EXTENDED);
-  int R_CAT_WRITE = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_CAT_WRITE = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_less = regcomp(&regex, __r_less, REG_EXTENDED);
-  int R_LESS = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_LESS = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_close = regcomp(&regex, __r_close, REG_EXTENDED);
-  int R_CLOSE = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_CLOSE = regexec(&regex, textTerminal, 0, NULL, 0);
 
   // Other - Display
   int r_ls = regcomp(&regex, __r_ls, REG_EXTENDED);
-  int R_LS = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_LS = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_ls_time = regcomp(&regex, __r_ls_time, REG_EXTENDED);
-  int R_LS_TIME = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_LS_TIME = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_vs = regcomp(&regex, __r_vs, REG_EXTENDED);
-  int R_VS = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_VS = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_exit = regcomp(&regex, __r_exit, REG_EXTENDED);
-  int R_EXIT = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_EXIT = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_set_owner = regcomp(&regex, __r_set_owner, REG_EXTENDED);
-  int R_SET_OWNER = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_SET_OWNER = regexec(&regex, textTerminal, 0, NULL, 0);
 
   int r_set_size = regcomp(&regex, __r_set_size, REG_EXTENDED);
-  int R_SET_SIZE = regexec(&regex, text_terminal, 0, NULL, 0);
+  int R_SET_SIZE = regexec(&regex, textTerminal, 0, NULL, 0);
 
   ERROR_TERMINAL = false;
 
   if (!R_EXIT) // EXIT
-    REG_KEY = 0;
+    regKey = 0;
   else if (!R_MKDIR) // crear
-    REG_KEY = 1;
+    regKey = 1;
   else if (!R_RMDIR) // eliminar
-    REG_KEY = 2;
+    regKey = 2;
   else if (!R_CD) // desplazarse
-    REG_KEY = 3;
+    regKey = 3;
   else if (!R_MV_RENAME_FOLDER) // renombrar
-    REG_KEY = 4;
+    regKey = 4;
   else if (!R_RM) // eliminar
-    REG_KEY = 5;
+    regKey = 5;
   else if (!R_UNLINK) // eliminar
-    REG_KEY = 55;
+    regKey = 55;
   else if (!R_MV_FILE) // renombrar
-    REG_KEY = 6;
+    regKey = 6;
   else if (!R_TOUCH) // crear
-    REG_KEY = 7;
+    regKey = 7;
   else if (!R_CAT) // abrir
-    REG_KEY = 8;
+    regKey = 8;
   else if (!R_GET) // obtener atributos
-    REG_KEY = 9;
+    regKey = 9;
   else if (!R_CAT_WRITE) // escribir
-    REG_KEY = 10;
+    regKey = 10;
   else if (!R_LESS) // leer
-    REG_KEY = 8;
+    regKey = 8;
   else if (!R_CLOSE) // cerrar
-    REG_KEY = 12;
+    regKey = 12;
   else if (!R_LS) // mostrar por defecto
-    REG_KEY = 13;
+    regKey = 13;
   else if (!R_LS_TIME) // mostrar por fechas
-    REG_KEY = 14;
+    regKey = 14;
   else if (!R_VS) // visualizador
-    REG_KEY = 15;
+    regKey = 15;
   else if (!R_SET_OWNER) // establecer dueno
-    REG_KEY = 16;
+    regKey = 16;
   else if (!R_SET_SIZE) // establecer tamano
-    REG_KEY = 17;
+    regKey = 17;
   else
   {
-    strcpy(Error_msg, "Command '");
-    strcat(Error_msg, text_terminal + 2);
-    strcat(Error_msg, "' not found.");
-    strcpy(text_terminal, "> ");
+    strcpy(errorMsg, "Command '");
+    strcat(errorMsg, textTerminal + 2);
+    strcat(errorMsg, "' not found.");
+    strcpy(textTerminal, "> ");
     ERROR_TERMINAL = true;
-    REG_KEY = -1;
+    regKey = -1;
   }
-  if (REG_KEY != -1)
+  if (regKey != -1)
   {
-    regexTerminal(REG_KEY);
-    if (REG_KEY != 10)
+    regexTerminal(regKey);
+    if (regKey != 10)
     {
-      strcpy(text_terminal, "> ");
+      strcpy(textTerminal, "> ");
     }
   }
 }
 
+/**
+ * @brief  Method to concatenate character to textTerminal and call validateInput
+ * @note   > validateInput
+ * @param  \keyType: Allegro keyboard type
+ * @param  \keycode: Allegro keyboard code
+ * @retval None
+ */
 void keyBoardController(ALLEGRO_EVENT_TYPE keyType, int keycode)
 {
   LS_TERMINAL = false;
 
-  if (keyType == ALLEGRO_EVENT_KEY_DOWN && (keycode == ALLEGRO_KEY_FULLSTOP || keycode == ALLEGRO_KEY_PAD_DELETE) && Shift == 100)
+  if (keyType == ALLEGRO_EVENT_KEY_DOWN && (keycode == ALLEGRO_KEY_FULLSTOP || keycode == ALLEGRO_KEY_PAD_DELETE) && _shift_ == 100)
   {
-    Shift = 0;
-    strcat(text_terminal, ">");
+    _shift_ = 0;
+    strcat(textTerminal, ">");
   }
   else
   {
-    Shift = 0;
+    _shift_ = 0;
     if (keycode == ALLEGRO_KEY_ENTER || keycode == ALLEGRO_KEY_PAD_ENTER)
     {
       TERMINAL_OUTPUT = false;
@@ -693,110 +756,116 @@ void keyBoardController(ALLEGRO_EVENT_TYPE keyType, int keycode)
     }
 
     if (keycode == ALLEGRO_KEY_A)
-      strcat(text_terminal, "a");
+      strcat(textTerminal, "a");
     else if (keycode == ALLEGRO_KEY_B)
-      strcat(text_terminal, "b");
+      strcat(textTerminal, "b");
     else if (keycode == ALLEGRO_KEY_C)
-      strcat(text_terminal, "c");
+      strcat(textTerminal, "c");
     else if (keycode == ALLEGRO_KEY_D)
-      strcat(text_terminal, "d");
+      strcat(textTerminal, "d");
     else if (keycode == ALLEGRO_KEY_E)
-      strcat(text_terminal, "e");
+      strcat(textTerminal, "e");
     else if (keycode == ALLEGRO_KEY_F)
-      strcat(text_terminal, "f");
+      strcat(textTerminal, "f");
     else if (keycode == ALLEGRO_KEY_G)
-      strcat(text_terminal, "g");
+      strcat(textTerminal, "g");
     else if (keycode == ALLEGRO_KEY_H)
-      strcat(text_terminal, "h");
+      strcat(textTerminal, "h");
     else if (keycode == ALLEGRO_KEY_I)
-      strcat(text_terminal, "i");
+      strcat(textTerminal, "i");
     else if (keycode == ALLEGRO_KEY_J)
-      strcat(text_terminal, "j");
+      strcat(textTerminal, "j");
     else if (keycode == ALLEGRO_KEY_K)
-      strcat(text_terminal, "k");
+      strcat(textTerminal, "k");
     else if (keycode == ALLEGRO_KEY_L)
-      strcat(text_terminal, "l");
+      strcat(textTerminal, "l");
     else if (keycode == ALLEGRO_KEY_M)
-      strcat(text_terminal, "m");
+      strcat(textTerminal, "m");
     else if (keycode == ALLEGRO_KEY_N)
-      strcat(text_terminal, "n");
+      strcat(textTerminal, "n");
     else if (keycode == ALLEGRO_KEY_O)
-      strcat(text_terminal, "o");
+      strcat(textTerminal, "o");
     else if (keycode == ALLEGRO_KEY_P)
-      strcat(text_terminal, "p");
+      strcat(textTerminal, "p");
     else if (keycode == ALLEGRO_KEY_Q)
-      strcat(text_terminal, "q");
+      strcat(textTerminal, "q");
     else if (keycode == ALLEGRO_KEY_R)
-      strcat(text_terminal, "r");
+      strcat(textTerminal, "r");
     else if (keycode == ALLEGRO_KEY_S)
-      strcat(text_terminal, "s");
+      strcat(textTerminal, "s");
     else if (keycode == ALLEGRO_KEY_T)
-      strcat(text_terminal, "t");
+      strcat(textTerminal, "t");
     else if (keycode == ALLEGRO_KEY_U)
-      strcat(text_terminal, "u");
+      strcat(textTerminal, "u");
     else if (keycode == ALLEGRO_KEY_V)
-      strcat(text_terminal, "v");
+      strcat(textTerminal, "v");
     else if (keycode == ALLEGRO_KEY_W)
-      strcat(text_terminal, "w");
+      strcat(textTerminal, "w");
     else if (keycode == ALLEGRO_KEY_X)
-      strcat(text_terminal, "x");
+      strcat(textTerminal, "x");
     else if (keycode == ALLEGRO_KEY_Y)
-      strcat(text_terminal, "y");
+      strcat(textTerminal, "y");
     else if (keycode == ALLEGRO_KEY_Z)
-      strcat(text_terminal, "z");
+      strcat(textTerminal, "z");
 
     // Numbers
     else if (keycode == ALLEGRO_KEY_0 || keycode == ALLEGRO_KEY_PAD_0)
-      strcat(text_terminal, "0");
+      strcat(textTerminal, "0");
     else if (keycode == ALLEGRO_KEY_1 || keycode == ALLEGRO_KEY_PAD_1)
-      strcat(text_terminal, "1");
+      strcat(textTerminal, "1");
     else if (keycode == ALLEGRO_KEY_2 || keycode == ALLEGRO_KEY_PAD_2)
-      strcat(text_terminal, "2");
+      strcat(textTerminal, "2");
     else if (keycode == ALLEGRO_KEY_3 || keycode == ALLEGRO_KEY_PAD_3)
-      strcat(text_terminal, "3");
+      strcat(textTerminal, "3");
     else if (keycode == ALLEGRO_KEY_4 || keycode == ALLEGRO_KEY_PAD_4)
-      strcat(text_terminal, "4");
+      strcat(textTerminal, "4");
     else if (keycode == ALLEGRO_KEY_5 || keycode == ALLEGRO_KEY_PAD_5)
-      strcat(text_terminal, "5");
+      strcat(textTerminal, "5");
     else if (keycode == ALLEGRO_KEY_6 || keycode == ALLEGRO_KEY_PAD_6)
-      strcat(text_terminal, "6");
+      strcat(textTerminal, "6");
     else if (keycode == ALLEGRO_KEY_7 || keycode == ALLEGRO_KEY_PAD_7)
-      strcat(text_terminal, "7");
+      strcat(textTerminal, "7");
     else if (keycode == ALLEGRO_KEY_8 || keycode == ALLEGRO_KEY_PAD_8)
-      strcat(text_terminal, "8");
+      strcat(textTerminal, "8");
     else if (keycode == ALLEGRO_KEY_9 || keycode == ALLEGRO_KEY_PAD_9)
-      strcat(text_terminal, "9");
+      strcat(textTerminal, "9");
 
     // Others
     else if (keycode == ALLEGRO_KEY_SPACE)
-      strcat(text_terminal, " ");
+      strcat(textTerminal, " ");
 
     else if (keycode == ALLEGRO_KEY_SLASH || keycode == ALLEGRO_KEY_PAD_SLASH)
-      strcat(text_terminal, "/");
+      strcat(textTerminal, "/");
 
     else if (keycode == ALLEGRO_KEY_FULLSTOP || keycode == ALLEGRO_KEY_PAD_DELETE)
-      strcat(text_terminal, ".");
+      strcat(textTerminal, ".");
 
     else if (keycode == ALLEGRO_KEY_MINUS || keycode == ALLEGRO_KEY_PAD_MINUS)
-      strcat(text_terminal, "-");
+      strcat(textTerminal, "-");
 
     else if (keycode == ALLEGRO_KEY_RSHIFT || keycode == ALLEGRO_KEY_LSHIFT)
-      Shift = Shift + 100;
+      _shift_ = _shift_ + 100;
 
     else if (keycode == ALLEGRO_KEY_BACKSLASH || keycode == ALLEGRO_KEY_BACKSLASH2)
-      strcat(text_terminal, "\n\n");
+      strcat(textTerminal, "\n\n");
     // DELETE
-    else if (keycode == ALLEGRO_KEY_BACKSPACE && strlen(text_terminal) > 2)
-      text_terminal[strlen(text_terminal) - 1] = '\0';
+    else if (keycode == ALLEGRO_KEY_BACKSPACE && strlen(textTerminal) > 2)
+      textTerminal[strlen(textTerminal) - 1] = '\0';
     // ENTER
-    else if ((keycode == ALLEGRO_KEY_ENTER || keycode == ALLEGRO_KEY_PAD_ENTER) && Is_WRITING == false)
+    else if ((keycode == ALLEGRO_KEY_ENTER || keycode == ALLEGRO_KEY_PAD_ENTER) && _isWriting_ == 0)
       validateInput();
     // ENTER
-    else if ((keycode == ALLEGRO_KEY_ENTER || keycode == ALLEGRO_KEY_PAD_ENTER) && Is_WRITING == true)
-      write_File(text_terminal);
+    else if ((keycode == ALLEGRO_KEY_ENTER || keycode == ALLEGRO_KEY_PAD_ENTER) && _isWriting_ == 1)
+      write_File(textTerminal);
   }
 }
 
+/**
+ * @brief  Method to handle the UI events
+ * @note   Allegro API
+ * @param  \ev: Allegro Event
+ * @retval code
+ */
 code HandleEvent(ALLEGRO_EVENT ev)
 {
   switch (ev.type)
@@ -807,7 +876,7 @@ code HandleEvent(ALLEGRO_EVENT ev)
   case ALLEGRO_EVENT_DISPLAY_CLOSE:
     return EXIT_SUCCESS;
   case ALLEGRO_EVENT_KEY_DOWN:
-    /* if (strlen(text_terminal) < 68) */
+    /* if (strlen(textTerminal) < 68) */
     keyBoardController(ev.type, ev.keyboard.keycode);
     break;
   default:
@@ -816,26 +885,30 @@ code HandleEvent(ALLEGRO_EVENT ev)
   return CODE_CONTINUE;
 }
 
-int main(int argc, char *argv[])
+/**
+ * @brief  Main Methgod
+ * @retval progran status
+ */
+int main()
 {
   int block_size = 0;
   printf("Username: ");
-  scanf("%s", SystemOwner);
+  scanf("%s", systemOwner);
 
   int block_length = 0;
 
   while (block_length == 0)
   {
     printf("Blocks: ");
-    scanf("%s", block_input);
-    block_length = atoi(block_input);
+    scanf("%s", input);
+    block_length = atoi(input);
   }
 
   while (block_size == 0)
   {
     printf("Block Size: ");
-    scanf("%s", block_input);
-    block_size = atoi(block_input);
+    scanf("%s", input);
+    block_size = atoi(input);
   }
 
   startFileSystem(block_size, block_length);
@@ -867,7 +940,7 @@ int main(int argc, char *argv[])
   ALLEGRO_BITMAP *TOP_img = al_load_bitmap("../src/TOP.png");           // Top Image
   ALLEGRO_BITMAP *TERMINAL_img = al_load_bitmap("../src/TERMINAL.png"); // TERMINAL Image
 
-  strcpy(text_terminal, "> ");
+  strcpy(textTerminal, "> ");
 
   al_set_target_bitmap(al_get_backbuffer(display));
   ALLEGRO_EVENT_QUEUE *event_queue = al_create_event_queue();
@@ -891,16 +964,16 @@ int main(int argc, char *argv[])
 
     if (RedrawIsReady() && al_is_event_queue_empty(event_queue))
     {
-      al_draw_multiline_text(font, al_map_rgb(255, 255, 220), 30, text_terminal_vertical, SCREEN_W - 50, ALLEGRO_ALIGN_LEFT, 0, text_terminal);
+      al_draw_multiline_text(font, al_map_rgb(255, 255, 220), 30, ttVertical, SCREEN_W - 50, ALLEGRO_ALIGN_LEFT, 0, textTerminal);
 
       al_draw_text(font, al_map_rgb(255, 255, 220), 20, 10, ALLEGRO_ALIGN_LEFT, "~");
       al_draw_text(font, al_map_rgb(255, 255, 220), 30, 7, ALLEGRO_ALIGN_LEFT, directoryName);
 
       if (TERMINAL_OUTPUT)
-        al_draw_multiline_text(font, al_map_rgb(0, 206, 80), 30, 70, SCREEN_W - 50, ALLEGRO_ALIGN_LEFT, 0, text_terminal_output);
+        al_draw_multiline_text(font, al_map_rgb(0, 206, 80), 30, 70, SCREEN_W - 50, ALLEGRO_ALIGN_LEFT, 0, ttOutput);
 
       if (ERROR_TERMINAL)
-        al_draw_multiline_text(font, al_map_rgb(215, 35, 35), 30, 70, SCREEN_W - 50, ALLEGRO_ALIGN_LEFT, 0, Error_msg);
+        al_draw_multiline_text(font, al_map_rgb(215, 35, 35), 30, 70, SCREEN_W - 50, ALLEGRO_ALIGN_LEFT, 0, errorMsg);
 
       if (LS_TERMINAL)
         ls_(flag);
@@ -929,8 +1002,8 @@ int main(int argc, char *argv[])
   // Free Pointer
   free(start);
   start = NULL;
-  free(SearchedNode);
-  SearchedNode = NULL;
+  free(searchedNode);
+  searchedNode = NULL;
   free(currentFolder);
   currentFolder = NULL;
 
