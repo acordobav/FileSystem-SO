@@ -28,7 +28,7 @@ Node *currentFolder;
 // A linked list node of directories
 struct node
 {
-  char *name;
+  Node *treeNode;
   struct node *next;
 };
 
@@ -86,7 +86,7 @@ void print_list()
   while (temp->next != NULL)
   {
     temp = temp->next;
-    printf("Name: %s\n", temp->name);
+    printf("Name: %s\n", temp->treeNode->filedata->name);
   }
   puts("------------\n");
 }
@@ -108,7 +108,7 @@ int length_list()
   return l;
 }
 
-char *get_last()
+Node *get_last()
 {
   struct node *temp;
   temp = start;
@@ -116,20 +116,20 @@ char *get_last()
   while (temp->next != NULL)
   {
     temp = temp->next;
-    printf("Name: %s\n", temp->name);
+    printf("Name: %s\n", temp->treeNode->filedata->name);
   }
   puts(">>>>> \n");
-  printf("<<<<<<<<- > Name: %s\n", temp->name);
+  printf("<<<<<<<<- > Name: %s\n", temp->treeNode->filedata->name);
 
-  return temp->name;
+  return temp->treeNode;
 }
 
-void insert_at_end(char name[255])
+void insert_at_end(Node* treeNode)
 {
   struct node *t, *temp;
 
   t = (struct node *)malloc(sizeof(struct node));
-  t->name = name;
+  t->treeNode = treeNode;
   count++;
 
   if (start == NULL)
@@ -164,7 +164,6 @@ void delete_from_end()
   {
     free(start);
     start = NULL;
-    printf("%s deleted\n", start->name);
     return;
   }
 
@@ -307,8 +306,7 @@ void regexTerminal(int REG_KEY)
         delete_from_end();
         directoryName = "";
 
-        void *ref = search(tree->root, get_last());
-        Node *temp = (Node *)ref;
+        Node *temp = get_last();
         if (temp != NULL)
           currentFolder = temp;
         else
@@ -325,7 +323,7 @@ void regexTerminal(int REG_KEY)
         directoryName = "";
         currentFolder = temp;
         directoryName = currentFolder->filedata->name;
-        insert_at_end(directoryName);
+        insert_at_end(currentFolder);
       }
       else
       {
@@ -815,7 +813,7 @@ int main(int argc, char *argv[])
   }
 
   startFileSystem(block_size, block_length);
-  insert_at_end("root");
+  insert_at_end(tree->root);
 
   currentFolder = tree->root;
   directoryName = currentFolder->filedata->name;
