@@ -51,10 +51,10 @@ char *new_ffName;
 char *directoryName = "";
 
 char Error_msg[255];
+char block_input[_MAX_INPUT];
 char text_terminal_output[255];
 char text_terminal[_MAX_INPUT];
 char SystemOwner[20] = "system";
-char Block_Size_Option[1] = "0";
 char aux_text_terminal[_MAX_INPUT];
 
 bool Is_WRITING = false;
@@ -803,15 +803,15 @@ int main(int argc, char *argv[])
   while (block_length == 0)
   {
     printf("Blocks: ");
-    scanf("%s", Block_Size_Option);
-    block_length = atoi(Block_Size_Option);
+    scanf("%s", block_input);
+    block_length = atoi(block_input);
   }
 
   while (block_size == 0)
   {
     printf("Block Size: ");
-    scanf("%s", Block_Size_Option);
-    block_size = atoi(Block_Size_Option);
+    scanf("%s", block_input);
+    block_size = atoi(block_input);
   }
 
   startFileSystem(block_size, block_length);
