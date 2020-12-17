@@ -27,9 +27,8 @@
     escribir : cat >> filename.txt
     renombrar : mv old_filename.txt new_filename.txt
     obtener atributos : get filename.txt
-    establecer atributos : modifySize filename.txt newSize
-                           renameElement old_filename.txt new_filename.txt
-                           modifyOwner filename.txt newOwner
+    establecer atributos : set filename.txt -o newOwner
+                           set filename.txt -s newSize
 
 ## Other - Display
     listado default: ls | ls -a
@@ -56,5 +55,4 @@
     obtener atributos: getFileData
     establecer atributos: 
 	size  -> modifySize
-	name  -> renameElement
 	owner -> modifyOwner
