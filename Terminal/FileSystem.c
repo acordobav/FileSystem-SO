@@ -639,6 +639,8 @@ void validateInput()
 
 void keyBoardController(ALLEGRO_EVENT_TYPE keyType, int keycode)
 {
+  LS_TERMINAL = false;
+
   if (keyType == ALLEGRO_EVENT_KEY_DOWN && (keycode == ALLEGRO_KEY_FULLSTOP || keycode == ALLEGRO_KEY_PAD_DELETE) && Shift == 100)
   {
     Shift = 0;
@@ -852,18 +854,13 @@ int main(int argc, char *argv[])
       al_draw_text(font, al_map_rgb(255, 255, 220), 30, 7, ALLEGRO_ALIGN_LEFT, directoryName);
 
       if (TERMINAL_OUTPUT)
-      {
         al_draw_multiline_text(font, al_map_rgb(0, 206, 80), 30, 70, SCREEN_W - 50, ALLEGRO_ALIGN_LEFT, 0, text_terminal_output);
-      }
 
       if (ERROR_TERMINAL)
-      {
         al_draw_text(font, al_map_rgb(215, 35, 35), 30, 70, ALLEGRO_ALIGN_LEFT, Error_msg);
-      }
+
       if (LS_TERMINAL)
-      {
         ls_(flag);
-      }
 
       al_flip_display();
     }
