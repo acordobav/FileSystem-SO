@@ -1,3 +1,4 @@
-Terminal/bin/*
+Terminal/bin/FileSystem
+Terminal/bin/visualizer
 Terminal/disks/disk0.json
 Terminal/disks/disk1
