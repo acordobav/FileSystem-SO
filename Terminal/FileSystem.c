@@ -780,39 +780,16 @@ code HandleEvent(ALLEGRO_EVENT ev)
 
 int main(int argc, char *argv[])
 {
-
-  /*   printf("Length : %d\n", length_list());
-  insert_at_end("jose");
-  printf("Length : %d\n", length_list());
-
-  insert_at_end("carlos");
-  printf("Length : %d\n", length_list());
-
-  print_list();
-
-  printf("Length : %d\n", length_list());
-
-  return 0; */
-  int block_size = -1;
+  int block_size = 0;
   printf("Username: ");
   scanf("%s", SystemOwner);
 
-  while (block_size < 0)
+  while (block_size == 0)
   {
-    printf("Block Size\n  1) 32\n  2) 64\n  3) 128\n: ");
+    printf("Block Size: ");
     scanf("%s", Block_Size_Option);
-
-    if (strcmp(Block_Size_Option, "1") == 0)
-      block_size = 32;
-    else if (strcmp(Block_Size_Option, "2") == 0)
-      block_size = 64;
-    else if (strcmp(Block_Size_Option, "3") == 0)
-      block_size = 128;
-    else
-      puts("\n\nInvalid Option.!\n\n");
+    block_size = atoi(Block_Size_Option);
   }
-
-  printf("Block size: %d\n", block_size);
 
   startFileSystem(block_size, 10000);
   insert_at_end("root");
