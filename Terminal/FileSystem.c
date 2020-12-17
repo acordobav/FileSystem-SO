@@ -78,27 +78,13 @@ ALLEGRO_DISPLAY *display;
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #define CODE_CONTINUE (MIN(EXIT_SUCCESS, EXIT_FAILURE) - 1)
 
-void print_list()
-{
-  struct node *temp;
-  temp = start;
-  puts("------------");
-  while (temp->next != NULL)
-  {
-    temp = temp->next;
-    printf("Name: %s\n", temp->treeNode->filedata->name);
-  }
-  puts("------------\n");
-}
-
 int length_list()
 {
   struct node *temp;
   temp = start;
   if (temp == NULL)
-  {
     return 0;
-  }
+
   int l = 1;
   while (temp->next != NULL)
   {
@@ -112,19 +98,13 @@ Node *get_last()
 {
   struct node *temp;
   temp = start;
-  puts(">>>>> ");
   while (temp->next != NULL)
-  {
     temp = temp->next;
-    printf("Name: %s\n", temp->treeNode->filedata->name);
-  }
-  puts(">>>>> \n");
-  printf("<<<<<<<<- > Name: %s\n", temp->treeNode->filedata->name);
 
   return temp->treeNode;
 }
 
-void insert_at_end(Node* treeNode)
+void insert_at_end(Node *treeNode)
 {
   struct node *t, *temp;
 
@@ -153,10 +133,7 @@ void delete_from_end()
   struct node *t, *u;
 
   if (start == NULL)
-  {
-    printf("Linked list is empty.\n");
     return;
-  }
 
   count--;
 
@@ -219,13 +196,11 @@ void ls_(int flag)
   for (i = 0; i < elem; i++)
   {
     if (fileList[i]->isDirectory == 1) // Folders
-    {
       al_draw_text(font, al_map_rgb(5, 150, 220), 30, v_line, ALLEGRO_ALIGN_LEFT, fileList[i]->name);
-    }
+
     else // Files
-    {
       al_draw_text(font, al_map_rgb(220, 140, 245), 30, v_line, ALLEGRO_ALIGN_LEFT, fileList[i]->name);
-    }
+
     v_line = v_line + 15;
   }
 
@@ -241,36 +216,28 @@ void regexTerminal(int REG_KEY)
   strcpy(text_terminal_output, "");
   switch (REG_KEY)
   {
-  case 0:
-    puts("0");
+  case 0: // EXIT
     _exit_ = 1;
     break;
-  case 1:
-    puts("1");
+  case 1: // MKDIR
     ffName = splitRegex(1);
-    printf("--> currentFolder : %s \t ffName : %s \t SystemOwner : %s\n", currentFolder->filedata->name, ffName, SystemOwner);
     int mkdir_result = mkdir(currentFolder, ffName, SystemOwner);
-    printf("Result: %d\n", mkdir_result);
     if (mkdir_result == -1)
     {
+      ERROR_TERMINAL = true;
       strcpy(Error_msg, "mkdir: cannot create directory '");
       strcat(Error_msg, ffName);
       strcat(Error_msg, "': File exists");
-      ERROR_TERMINAL = true;
     }
     break;
-  case 2:
-    puts("2");
+  case 2: // RMDIR
     ffName = splitRegex(1);
-    printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
     int rmdir_result = rmdir_(currentFolder, ffName);
-    printf("Result: %d\n", rmdir_result);
     ERROR_TERMINAL = true;
 
     if (rmdir_result == 1)
-    {
       strcpy(Error_msg, "Error: cannot remove directory, please try again.!");
-    }
+
     else if (rmdir_result == 2)
     {
       strcpy(Error_msg, "rmdir: failed to remove '");
@@ -284,16 +251,12 @@ void regexTerminal(int REG_KEY)
       strcat(Error_msg, "': No such directory");
     }
     else
-    {
       ERROR_TERMINAL = false;
-    }
 
     break;
-  case 3:
-    puts("3");
+  case 3: // CD
     ffName = splitRegex(1);
     int r = strcmp(ffName, "..");
-
     if (r == 0)
     {
       if (length_list() == 1)
@@ -304,8 +267,6 @@ void regexTerminal(int REG_KEY)
       else
       {
         delete_from_end();
-        directoryName = "";
-
         Node *temp = get_last();
         if (temp != NULL)
           currentFolder = temp;
@@ -320,7 +281,6 @@ void regexTerminal(int REG_KEY)
       Node *temp = (Node *)ref;
       if (temp != NULL)
       {
-        directoryName = "";
         currentFolder = temp;
         directoryName = currentFolder->filedata->name;
         insert_at_end(currentFolder);
@@ -334,167 +294,204 @@ void regexTerminal(int REG_KEY)
       }
     }
     break;
-  case 4:
-    puts("4");
+  case 4: // RM
     ffName = splitRegex(1);
     strcpy(text_terminal, aux_text_terminal);
     new_ffName = splitRegex(2);
-    printf("rename FOLDER> %s -> %s\n", ffName, new_ffName);
-
     rne = renameElement(currentFolder, ffName, new_ffName);
-    if (rne == 0)
+    if (rne != 0)
     {
-      puts("Exito");
-    }
-    else
-    {
-      puts("error");
+      ERROR_TERMINAL = true;
+      strcpy(Error_msg, "mv: cannot stat '");
+      strcat(Error_msg, ffName);
+      strcat(Error_msg, "': No such file or directory");
     }
     break;
-  case 5:
-    puts("5");
+  case 5: //  RM
     ffName = splitRegex(1);
-    printf("remove file--> currentFolder : %s \t ffName : %s\n", currentFolder->filedata->name, ffName);
-    int rm_ = rm(currentFolder, ffName);
-    if (rm_ == 0)
+    int rm_RM = rm(currentFolder, ffName);
+    if (rm_RM == 1)
     {
-      puts("OK");
+      ERROR_TERMINAL = true;
+      strcpy(Error_msg, "rm: cannot remove '");
+      strcat(Error_msg, ffName);
+      strcat(Error_msg, "': Is a directory");
     }
-    else if (rm_ == 1)
+    else if (rm_RM == 2)
     {
-      puts("Error, es un folder");
+      ERROR_TERMINAL = true;
+      strcpy(Error_msg, "rm: cannot remove '");
+      strcat(Error_msg, ffName);
+      strcat(Error_msg, "': No such file");
     }
-    else
-    {
-      puts("Archivo no encontrado");
-    }
-
     break;
-  case 6:
-    puts("6");
+  case 55: // UNLINK
+    ffName = splitRegex(1);
+    int rm_UNLINK = rm(currentFolder, ffName);
+    if (rm_UNLINK == 1)
+    {
+      ERROR_TERMINAL = true;
+      strcpy(Error_msg, "unlink: cannot unlink '");
+      strcat(Error_msg, ffName);
+      strcat(Error_msg, "': Is a directory");
+    }
+    else if (rm_UNLINK == 2)
+    {
+      ERROR_TERMINAL = true;
+      strcpy(Error_msg, "unlink: cannot unlink '");
+      strcat(Error_msg, ffName);
+      strcat(Error_msg, "': No such file");
+    }
+    break;
+  case 6: // MV - file (Rename)
     ffName = splitRegex(1);
     strcpy(text_terminal, aux_text_terminal);
     new_ffName = splitRegex(2);
-    printf("rename FILE > %s -> %s\n", ffName, new_ffName);
-
     rne = renameElement(currentFolder, ffName, new_ffName);
-    if (rne == 0)
+    if (rne != 0)
     {
-      puts("Exito");
-    }
-    else
-    {
-      puts("error");
+      ERROR_TERMINAL = true;
+      strcpy(Error_msg, "mv: cannot stat '");
+      strcat(Error_msg, ffName);
+      strcat(Error_msg, "': No such file or directory");
     }
     break;
-  case 7:
-    puts("7");
+  case 7: // TOUCH
     ffName = splitRegex(1);
-    printf("--> %s\n", ffName);
     Node *file1 = touch(currentFolder, ffName, SystemOwner);
-    writeFile(file1, "");
+    if (file1 != NULL)
+      writeFile(file1, "");
     break;
-  case 8:
-    puts("8");
+  case 8: // CAT
     ffName = splitRegex(1);
-    printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
     SearchedNode = search(currentFolder, ffName);
     if (SearchedNode != NULL)
     {
-      data_msg = readFile(SearchedNode);
-      printf("data_msg: %s\n", data_msg);
-
-      strcat(text_terminal_output, "File Name: ");
-      strcat(text_terminal_output, ffName);
-      strcat(text_terminal_output, "\n\n\n");
-      strcat(text_terminal_output, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n");
-
-      if (data_msg != NULL)
+      if (SearchedNode->filedata->isDirectory == 1)
       {
-        strcat(text_terminal_output, data_msg);
-        free(data_msg);
+        ERROR_TERMINAL = true;
+        strcpy(Error_msg, "cat or less: ");
+        strcat(Error_msg, ffName);
+        strcat(Error_msg, ": Is a directory");
       }
+      else
+      {
+        data_msg = readFile(SearchedNode);
+        strcat(text_terminal_output, "File Name: ");
+        strcat(text_terminal_output, ffName);
+        strcat(text_terminal_output, "\n\n\n");
+        strcat(text_terminal_output, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n");
 
-      TERMINAL_OUTPUT = true;
+        if (data_msg != NULL)
+        {
+          strcat(text_terminal_output, data_msg);
+          free(data_msg);
+        }
+        TERMINAL_OUTPUT = true;
+      }
     }
     else
     {
-      puts("ERROR--280");
+      ERROR_TERMINAL = true;
+      strcpy(Error_msg, "cat or less: ");
+      strcat(Error_msg, ffName);
+      strcat(Error_msg, ": No such file or directory");
     }
-
     break;
   case 9:
     puts("9");
     ffName = splitRegex(1);
     printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
     SearchedNode = searchElement(currentFolder, ffName);
-    FileData *FD = getFileData(SearchedNode);
 
-    strcat(text_terminal_output, "File Name: ");
-    strcat(text_terminal_output, ffName);
-    strcat(text_terminal_output, "\n\n\n");
-    strcat(text_terminal_output, "Owner: ");
-    strcat(text_terminal_output, FD->owner);
-    strcat(text_terminal_output, "\n\n\n");
-    strcat(text_terminal_output, "Created: ");
-    strcat(text_terminal_output, FD->created);
-    strcat(text_terminal_output, "\n\n");
-    strcat(text_terminal_output, "Last Modified: ");
-    strcat(text_terminal_output, FD->lastModified);
-    strcat(text_terminal_output, "\n\n");
-    strcat(text_terminal_output, "Size: ");
-    char snum[25];
-    sprintf(snum, "%d", FD->size);
-    strcat(text_terminal_output, snum);
+    if (SearchedNode != NULL)
+    {
+      FileData *FD = getFileData(SearchedNode);
 
-    TERMINAL_OUTPUT = true;
+      if (FD != NULL)
+      {
+        if (FD->isDirectory == 1)
+          strcat(text_terminal_output, "Folder Name: ");
+        else
+          strcat(text_terminal_output, "File Name: ");
+
+        char snum[25];
+        strcat(text_terminal_output, ffName);
+        strcat(text_terminal_output, "\n\n\n");
+        strcat(text_terminal_output, "Owner: ");
+        strcat(text_terminal_output, FD->owner);
+        strcat(text_terminal_output, "\n\n\n");
+        strcat(text_terminal_output, "Created: ");
+        strcat(text_terminal_output, FD->created);
+        strcat(text_terminal_output, "\n\n");
+        strcat(text_terminal_output, "Last Modified: ");
+        strcat(text_terminal_output, FD->lastModified);
+        strcat(text_terminal_output, "\n\n");
+        strcat(text_terminal_output, "Size: ");
+        sprintf(snum, "%d", FD->size);
+        strcat(text_terminal_output, snum);
+
+        TERMINAL_OUTPUT = true;
+      }
+    }else{
+      ERROR_TERMINAL = true;
+      strcpy(Error_msg, "get: ");
+      strcat(Error_msg, ffName);
+      strcat(Error_msg, ": No such file or directory");
+    }
 
     break;
-  case 10:
-    puts("10");
-    Is_WRITING = true;
-    text_terminal_vertical = 70;
+  case 10: // CAT >> (WRITE)
     ffName = splitRegex(2);
-    printf("10 --> %s\n", ffName);
     strcpy(ffName_10, ffName);
-
     SearchedNode = search(currentFolder, ffName);
 
     if (SearchedNode != NULL)
     {
-      data_msg = readFile(SearchedNode);
-
       strcpy(text_terminal, "> ");
-      if (data_msg != NULL)
+
+      if (SearchedNode->filedata->isDirectory == 1)
       {
-        strcat(text_terminal, data_msg);
+        ERROR_TERMINAL = true;
+        strcpy(Error_msg, "bash: ");
+        strcat(Error_msg, ffName);
+        strcat(Error_msg, ": Is a directory");
+      }
+      else
+      {
+        Is_WRITING = true;
+        text_terminal_vertical = 70;
+        data_msg = readFile(SearchedNode);
+
+        if (data_msg != NULL)
+          strcat(text_terminal, data_msg);
       }
     }
     else
     {
-      puts("accion 340");
+      Node *file1 = touch(currentFolder, ffName, SystemOwner);
+      if (file1 != NULL)
+        writeFile(file1, "");
+      strcpy(text_terminal, "> ");
+      Is_WRITING = true;
+      text_terminal_vertical = 70;
     }
     break;
   case 12:
-    puts("12");
     puts("close..");
     break;
   case 13:
-    puts("13"); // R_LS
     flag = 0;
     LS_TERMINAL = true;
     break;
   case 14:
-    puts("14"); // R_LS_TIME
     flag = 1;
     LS_TERMINAL = true;
     break;
   case 15:
-    puts("16");
     showVisualicer();
     break;
   default:
-    puts("default");
     break;
   }
 }
@@ -551,8 +548,11 @@ void validateInput()
   int R_MV_RENAME_FOLDER = regexec(&regex, text_terminal, 0, NULL, 0);
 
   // File
-  int r_rm_unlink = regcomp(&regex, __r_rm_unlink, REG_EXTENDED);
-  int R_RM_UNLINK = regexec(&regex, text_terminal, 0, NULL, 0);
+  int r_rm = regcomp(&regex, __r_rm, REG_EXTENDED);
+  int R_RM = regexec(&regex, text_terminal, 0, NULL, 0);
+
+  int r_unlink = regcomp(&regex, __r_unlink, REG_EXTENDED);
+  int R_UNLINK = regexec(&regex, text_terminal, 0, NULL, 0);
 
   int r_mv_file = regcomp(&regex, __r_mv_file, REG_EXTENDED);
   int R_MV_FILE = regexec(&regex, text_terminal, 0, NULL, 0);
@@ -588,11 +588,6 @@ void validateInput()
   int r_exit = regcomp(&regex, __r_exit, REG_EXTENDED);
   int R_EXIT = regexec(&regex, text_terminal, 0, NULL, 0);
 
-  if (!r_close && !r_mkdir && !r_rmdir && !r_cd && !r_mv_rename_folder && !r_rm_unlink && !r_mv_file && !r_touch && !r_cat && !r_get && !r_cat_write && !r_less && !r_close && !r_ls && !r_ls_time && !r_vs && !r_exit)
-    puts(""); // OK Regex
-  else
-    puts("Compilation error.");
-
   ERROR_TERMINAL = false;
 
   if (!R_EXIT) // EXIT
@@ -605,8 +600,10 @@ void validateInput()
     REG_KEY = 3;
   else if (!R_MV_RENAME_FOLDER) // renombrar
     REG_KEY = 4;
-  else if (!R_RM_UNLINK) // eliminar
+  else if (!R_RM) // eliminar
     REG_KEY = 5;
+  else if (!R_UNLINK) // eliminar
+    REG_KEY = 55;
   else if (!R_MV_FILE) // renombrar
     REG_KEY = 6;
   else if (!R_TOUCH) // crear
@@ -645,6 +642,8 @@ void validateInput()
       strcpy(text_terminal, "> ");
     }
   }
+
+  printf("REG_KEY : %d \n", REG_KEY);
 }
 
 void keyBoardController(ALLEGRO_EVENT_TYPE keyType, int keycode)
@@ -859,14 +858,12 @@ int main(int argc, char *argv[])
 
   while (code == CODE_CONTINUE && _exit_ == 0)
   {
-    al_clear_to_color(BLACK); // TODO: check if this line es necessary!! - showing directoryName
-
+    al_clear_to_color(BLACK);
     al_draw_bitmap(TOP_img, XYZ_TOP);
     al_draw_bitmap(TERMINAL_img, XYZ_TERMINAL);
 
     if (RedrawIsReady() && al_is_event_queue_empty(event_queue))
     {
-      // al_draw_text(font, al_map_rgb(255, 255, 220), 30, text_terminal_vertical, ALLEGRO_ALIGN_LEFT, text_terminal);
       al_draw_multiline_text(font, al_map_rgb(255, 255, 220), 30, text_terminal_vertical, SCREEN_W - 50, ALLEGRO_ALIGN_LEFT, 0, text_terminal);
 
       al_draw_text(font, al_map_rgb(255, 255, 220), 20, 10, ALLEGRO_ALIGN_LEFT, "~");
@@ -876,7 +873,7 @@ int main(int argc, char *argv[])
         al_draw_multiline_text(font, al_map_rgb(0, 206, 80), 30, 70, SCREEN_W - 50, ALLEGRO_ALIGN_LEFT, 0, text_terminal_output);
 
       if (ERROR_TERMINAL)
-        al_draw_text(font, al_map_rgb(215, 35, 35), 30, 70, ALLEGRO_ALIGN_LEFT, Error_msg);
+        al_draw_multiline_text(font, al_map_rgb(215, 35, 35), 30, 70, SCREEN_W - 50, ALLEGRO_ALIGN_LEFT, 0, Error_msg);
 
       if (LS_TERMINAL)
         ls_(flag);
