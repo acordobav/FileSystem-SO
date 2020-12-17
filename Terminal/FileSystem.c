@@ -247,6 +247,7 @@ void regexTerminal(int REG_KEY)
     _exit_ = 1;
     break;
   case 1:
+    puts("1");
     ffName = splitRegex(1);
     printf("--> currentFolder : %s \t ffName : %s \t SystemOwner : %s\n", currentFolder->filedata->name, ffName, SystemOwner);
     int mkdir_result = mkdir(currentFolder, ffName, SystemOwner);
@@ -290,6 +291,7 @@ void regexTerminal(int REG_KEY)
 
     break;
   case 3:
+    puts("3");
     ffName = splitRegex(1);
     int r = strcmp(ffName, "..");
 
@@ -335,6 +337,7 @@ void regexTerminal(int REG_KEY)
     }
     break;
   case 4:
+    puts("4");
     ffName = splitRegex(1);
     strcpy(text_terminal, aux_text_terminal);
     new_ffName = splitRegex(2);
@@ -351,6 +354,7 @@ void regexTerminal(int REG_KEY)
     }
     break;
   case 5:
+    puts("5");
     ffName = splitRegex(1);
     printf("remove file--> currentFolder : %s \t ffName : %s\n", currentFolder->filedata->name, ffName);
     int rm_ = rm(currentFolder, ffName);
@@ -369,6 +373,7 @@ void regexTerminal(int REG_KEY)
 
     break;
   case 6:
+    puts("6");
     ffName = splitRegex(1);
     strcpy(text_terminal, aux_text_terminal);
     new_ffName = splitRegex(2);
@@ -385,12 +390,14 @@ void regexTerminal(int REG_KEY)
     }
     break;
   case 7:
+    puts("7");
     ffName = splitRegex(1);
     printf("--> %s\n", ffName);
     Node *file1 = touch(currentFolder, ffName, SystemOwner);
     writeFile(file1, "");
     break;
   case 8:
+    puts("8");
     ffName = splitRegex(1);
     printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
     SearchedNode = search(currentFolder, ffName);
@@ -419,6 +426,7 @@ void regexTerminal(int REG_KEY)
 
     break;
   case 9:
+    puts("9");
     ffName = splitRegex(1);
     printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
     SearchedNode = searchElement(currentFolder, ffName);
@@ -445,6 +453,7 @@ void regexTerminal(int REG_KEY)
 
     break;
   case 10:
+    puts("10");
     Is_WRITING = true;
     text_terminal_vertical = 70;
     ffName = splitRegex(2);
@@ -469,6 +478,7 @@ void regexTerminal(int REG_KEY)
     }
     break;
   case 12:
+    puts("12");
     puts("close..");
     break;
   case 13:
@@ -482,9 +492,11 @@ void regexTerminal(int REG_KEY)
     LS_TERMINAL = true;
     break;
   case 15:
+    puts("16");
     showVisualicer();
     break;
   default:
+    puts("default");
     break;
   }
 }
@@ -790,7 +802,7 @@ int main(int argc, char *argv[])
 
   while (block_length == 0)
   {
-    printf("Block: ");
+    printf("Blocks: ");
     scanf("%s", Block_Size_Option);
     block_length = atoi(Block_Size_Option);
   }
