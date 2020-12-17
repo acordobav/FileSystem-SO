@@ -477,9 +477,6 @@ void regexTerminal(int REG_KEY)
       text_terminal_vertical = 70;
     }
     break;
-  case 12:
-    puts("close..");
-    break;
   case 13:
     flag = 0;
     LS_TERMINAL = true;
@@ -538,33 +535,16 @@ void regexTerminal(int REG_KEY)
 
 void write_File(char *text)
 {
-  printf("--> %s\n", ffName_10);
-
   SearchedNode = search(currentFolder, ffName_10);
 
   if (SearchedNode != NULL)
   {
     char *chopped_text = text + 2;
-    printf("text_terminal: %s\n", chopped_text);
-
-    int r = writeFile(SearchedNode, chopped_text);
-
-    if (r == 0)
-    {
-      puts("exito");
-    }
-    else if (r == 1)
-    {
-      puts("elemento es un directorio ");
-    }
-    else
-    {
-      puts("no hay espacio suficiente");
-    }
+    writeFile(SearchedNode, chopped_text);
   }
   else
   {
-    puts("No hacer nada..");
+    puts(">>> Error! Code:550");
   }
   Is_WRITING = false;
   TERMINAL_OUTPUT = false;
@@ -664,15 +644,15 @@ void validateInput()
     REG_KEY = 8;
   else if (!R_CLOSE) // cerrar
     REG_KEY = 12;
-  else if (!R_LS)
+  else if (!R_LS) // mostrar por defecto
     REG_KEY = 13;
-  else if (!R_LS_TIME)
+  else if (!R_LS_TIME) // mostrar por fechas
     REG_KEY = 14;
-  else if (!R_VS)
+  else if (!R_VS) // visualizador
     REG_KEY = 15;
-  else if (!R_SET_OWNER)
+  else if (!R_SET_OWNER) // establecer dueno
     REG_KEY = 16;
-  else if (!R_SET_SIZE)
+  else if (!R_SET_SIZE) // establecer tamano
     REG_KEY = 17;
   else
   {
@@ -691,8 +671,6 @@ void validateInput()
       strcpy(text_terminal, "> ");
     }
   }
-
-  printf("REG_KEY : %d \n", REG_KEY);
 }
 
 void keyBoardController(ALLEGRO_EVENT_TYPE keyType, int keycode)
