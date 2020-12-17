@@ -786,6 +786,15 @@ int main(int argc, char *argv[])
   printf("Username: ");
   scanf("%s", SystemOwner);
 
+  int block_length = 0;
+
+  while (block_length == 0)
+  {
+    printf("Block: ");
+    scanf("%s", Block_Size_Option);
+    block_length = atoi(Block_Size_Option);
+  }
+
   while (block_size == 0)
   {
     printf("Block Size: ");
@@ -793,7 +802,7 @@ int main(int argc, char *argv[])
     block_size = atoi(Block_Size_Option);
   }
 
-  startFileSystem(block_size, 10000);
+  startFileSystem(block_size, block_length);
   insert_at_end("root");
 
   currentFolder = tree->root;
