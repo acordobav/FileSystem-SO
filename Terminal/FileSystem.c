@@ -398,10 +398,8 @@ void regexTerminal(int REG_KEY)
       strcat(Error_msg, ": No such file or directory");
     }
     break;
-  case 9:
-    puts("9");
+  case 9: // GET
     ffName = splitRegex(1);
-    printf("--> currentFolder : %s \t ffName : %s \n", currentFolder->filedata->name, ffName);
     SearchedNode = searchElement(currentFolder, ffName);
 
     if (SearchedNode != NULL)
@@ -433,7 +431,9 @@ void regexTerminal(int REG_KEY)
 
         TERMINAL_OUTPUT = true;
       }
-    }else{
+    }
+    else
+    {
       ERROR_TERMINAL = true;
       strcpy(Error_msg, "get: ");
       strcat(Error_msg, ffName);
@@ -490,6 +490,46 @@ void regexTerminal(int REG_KEY)
     break;
   case 15:
     showVisualicer();
+    break;
+
+  case 16: // set_owner
+    ffName = splitRegex(1);
+    strcpy(text_terminal, aux_text_terminal);
+    char *flag = splitRegex(2);
+    strcpy(text_terminal, aux_text_terminal);
+    char *data = splitRegex(3);
+
+    SearchedNode = search(currentFolder, ffName);
+
+    if (SearchedNode != NULL)
+      modifyOwner(SearchedNode, data);
+    else
+    {
+      ERROR_TERMINAL = true;
+      strcpy(Error_msg, "set: ");
+      strcat(Error_msg, ffName);
+      strcat(Error_msg, ": No such file or directory");
+    }
+    break;
+  case 17: // set_SIZE
+    ffName = splitRegex(1);
+    strcpy(text_terminal, aux_text_terminal);
+    char *flag_ = splitRegex(2);
+    strcpy(text_terminal, aux_text_terminal);
+    char *data_ = splitRegex(3);
+
+    SearchedNode = search(currentFolder, ffName);
+
+    if (SearchedNode != NULL)
+      modifySize(SearchedNode, atoi(data_));
+    else
+    {
+      ERROR_TERMINAL = true;
+      strcpy(Error_msg, "set: ");
+      strcat(Error_msg, ffName);
+      strcat(Error_msg, ": No such file or directory");
+    }
+
     break;
   default:
     break;
@@ -588,6 +628,12 @@ void validateInput()
   int r_exit = regcomp(&regex, __r_exit, REG_EXTENDED);
   int R_EXIT = regexec(&regex, text_terminal, 0, NULL, 0);
 
+  int r_set_owner = regcomp(&regex, __r_set_owner, REG_EXTENDED);
+  int R_SET_OWNER = regexec(&regex, text_terminal, 0, NULL, 0);
+
+  int r_set_size = regcomp(&regex, __r_set_size, REG_EXTENDED);
+  int R_SET_SIZE = regexec(&regex, text_terminal, 0, NULL, 0);
+
   ERROR_TERMINAL = false;
 
   if (!R_EXIT) // EXIT
@@ -624,7 +670,10 @@ void validateInput()
     REG_KEY = 14;
   else if (!R_VS)
     REG_KEY = 15;
-  // TODO establecer atributos.
+  else if (!R_SET_OWNER)
+    REG_KEY = 16;
+  else if (!R_SET_SIZE)
+    REG_KEY = 17;
   else
   {
     strcpy(Error_msg, "Command '");

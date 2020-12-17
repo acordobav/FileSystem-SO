@@ -16,12 +16,15 @@ static const char *__r_touch = "touch([[:space:]]+)([[:alnum:]]+)((\\.([[:alpha:
 static const char *__r_less = "less([[:space:]]+)([[:alnum:]]+)((\\.([[:alpha:]]+))?)$";
 static const char *__r_cat = "cat([[:space:]]+)([[:alnum:]]+)((\\.([[:alpha:]]+))?)$";
 static const char *__r_get = "get([[:space:]]+)([[:alnum:]]+)((\\.([[:alpha:]]+))?)$";
-static const char *__r_exit = "([[:space:]]*)exit([[:space:]]*)$";
-static const char *__r_vs = "vs -f([[:space:]]*)$";
+static const char *__r_close = "([[:space:]]*)close([[:space:]]*)$";
+static const char *__r_exit = "([[:space:]]*)exit([[:space:]]*)$"; 
+
+static const char *__r_set_owner = "set([[:space:]]+)([[:alnum:]]+)((\\.([[:alpha:]]+))?)([[:space:]]+)-o([[:space:]]+)([[:alnum:]]+)$";
+static const char *__r_set_size = "set([[:space:]]+)([[:alnum:]]+)((\\.([[:alpha:]]+))?)([[:space:]]+)-s([[:space:]]+)([[:digit:]]+)$";
 
 //Other - Display
 static const char *__r_ls = "(ls|ls -a)$";
 static const char *__r_ls_time = "ls -t$";
-static const char *__r_close = "([[:space:]]*)close([[:space:]]*)$";
+static const char *__r_vs = "vs -f([[:space:]]*)$";
 
 #endif
