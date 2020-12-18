@@ -897,7 +897,7 @@ code HandleEvent(ALLEGRO_EVENT ev)
 
 /**
  * @brief  Main Methgod
- * @retval progran status
+ * @retval program status
  */
 int main()
 {
@@ -907,14 +907,14 @@ int main()
 
   int block_length = 0;
 
-  while (block_length == 0)
+  while (block_length <= 0)
   {
     printf("Blocks: ");
     scanf("%s", input);
     block_length = atoi(input);
   }
 
-  while (block_size == 0)
+  while (block_size <= 0)
   {
     printf("Block Size: ");
     scanf("%s", input);
