@@ -323,9 +323,19 @@ void regexTerminal(int regKey)
       Node *temp = (Node *)ref;
       if (temp != NULL)
       {
-        currentFolder = temp;
-        directoryName = currentFolder->filedata->name;
-        insert_at_end(currentFolder);
+        if (temp->filedata->isDirectory == 1)
+        {
+          currentFolder = temp;
+          directoryName = currentFolder->filedata->name;
+          insert_at_end(currentFolder);
+        }
+        else
+        {
+          ERROR_TERMINAL = true;
+          strcpy(errorMsg, "bash: cd: ");
+          strcat(errorMsg, ffName);
+          strcat(errorMsg, ": No such directory");
+        }
       }
       else
       {
